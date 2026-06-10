@@ -1,0 +1,14 @@
+# Local/editor
+.DS_Store
+.vscode/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.env
+
+# Generated demo output
+examples/workspace/Discovery Notes/*.generated.md
+examples/workspace/Weekly Briefs/*.generated.md
