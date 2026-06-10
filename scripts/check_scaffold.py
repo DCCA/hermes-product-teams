@@ -18,6 +18,8 @@ REQUIRED_FILES = [
     "examples/workspace/Open Questions.md",
     "examples/workspace/PRD.md",
     "examples/inputs/001-customer-feedback-thread.md",
+    "scripts/check_scaffold.py",
+    "scripts/run_capture_demo.py",
 ]
 
 

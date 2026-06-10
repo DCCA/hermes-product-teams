@@ -6,11 +6,20 @@ Build a usable demo of Hermes Product Teams as a local/private product-memory wo
 
 ## Phase 1 — Static workspace and capture workflow
 
-- Define Markdown artifacts.
-- Define input classification taxonomy.
-- Write the product-team-memory skill.
-- Create sample messy product inputs.
-- Manually run the capture workflow and inspect outputs.
+Status: initial demo implemented.
+
+- Define Markdown artifacts. ✅
+- Define input classification taxonomy. ✅
+- Write the product-team-memory skill. ✅
+- Create sample messy product inputs. ✅
+- Run the deterministic capture workflow and inspect generated outputs. ✅
+
+Current demo command:
+
+```bash
+python3 scripts/run_capture_demo.py
+python3 scripts/check_scaffold.py
+```
 
 ## Phase 2 — Repeatable CLI/script demo
 

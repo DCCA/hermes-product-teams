@@ -58,4 +58,18 @@ The demo workspace uses Markdown files:
 
 ## Current status
 
-Initial scaffold. Next step: implement the first capture workflow and test it against sample messy product inputs.
+Initial scaffold plus first deterministic capture demo. Run:
+
+```bash
+python3 scripts/run_capture_demo.py
+python3 scripts/check_scaffold.py
+```
+
+The demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
+
+- a generated discovery note;
+- customer insight updates;
+- a proposed decision-log entry;
+- open questions;
+- a PRD update proposal;
+- a weekly product brief.

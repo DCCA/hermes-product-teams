@@ -9,6 +9,4 @@ __pycache__/
 .venv/
 .env
 
-# Generated demo output
-examples/workspace/Discovery Notes/*.generated.md
-examples/workspace/Weekly Briefs/*.generated.md
+# Generated demo output is intentionally committed for the MVP demo.
