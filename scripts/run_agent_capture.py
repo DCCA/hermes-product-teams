@@ -41,8 +41,52 @@ def resolve_default_workspace() -> Path:
     return ROOT / "examples" / "workspace"
 
 
+def classify_input(input_path: Path) -> str:
+    lowered_name = input_path.name.lower()
+    try:
+        content = input_path.read_text(encoding="utf-8").lower()
+    except OSError:
+        content = ""
+
+    interview_markers = [
+        "interviewee:",
+        "interviewer:",
+        "role:",
+        "segment:",
+        "direct quotes",
+        "follow-up questions",
+        "assumptions to validate",
+    ]
+    marker_hits = sum(1 for marker in interview_markers if marker in content)
+    if "interview" in lowered_name or marker_hits >= 3:
+        return "User Interview"
+    return "Product-Team Input"
+
+
+def interview_extraction_guidance() -> str:
+    return """
+Additional interview-specific instructions:
+- Treat this capture as a User Interview unless the file clearly indicates otherwise.
+- Preserve the interview context, interviewee role, and segment.
+- Extract direct quotes separately from synthesized insights.
+- Distinguish current workflow, pain points, goals, assumptions to validate, follow-up questions, and PRD implications.
+- In the discovery note, include:
+  - Interviewee role:
+  - Segment:
+  - Goals:
+  - Assumptions to validate:
+  - Follow-up questions:
+- In artifact proposals, prefer durable customer-insight themes and open questions over premature roadmap commitments.
+- Do not silently convert interview evidence into final PRD language; keep PRD/spec changes as proposals with sources.
+""".strip()
+
+
 def build_prompt(input_path: Path, workspace: Path, workflow_path: Path) -> str:
     workflow = workflow_path.read_text(encoding="utf-8")
+    input_type = classify_input(input_path)
+    extra_guidance = ""
+    if input_type == "User Interview":
+        extra_guidance = "\n\n" + interview_extraction_guidance()
     return f"""You are running the Hermes Product Teams capture workflow.
 
 Workflow instructions:
@@ -50,6 +94,7 @@ Workflow instructions:
 
 Input path: {input_path}
 Workspace path: {workspace}
+Detected input class: {input_type}{extra_guidance}
 
 Read the input path, then create or propose updates to the configured workspace artifacts. Preserve source-linked evidence, separate facts from assumptions, and do not silently edit source-of-truth docs.
 """

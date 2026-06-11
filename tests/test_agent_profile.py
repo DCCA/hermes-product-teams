@@ -105,6 +105,23 @@ class AgentProfileTests(unittest.TestCase):
             self.assertIn(str(ROOT / "examples" / "workspace"), capture_result.stdout)
             self.assertIn("Weekly Briefs", weekly_result.stdout)
 
+            interview_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(profile_root / "scripts" / "run_agent_capture.py"),
+                    "--input",
+                    str(ROOT / "examples" / "inputs" / "002-user-interview-notes.md"),
+                    "--dry-run",
+                ],
+                cwd=profile_root,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+            self.assertIn("Detected input class: User Interview", interview_result.stdout)
+            self.assertIn("Interviewee role:", interview_result.stdout)
+            self.assertIn("Goals:", interview_result.stdout)
+
     def test_capture_command_builder_outputs_real_hermes_command(self) -> None:
         result = subprocess.run(
             [
@@ -148,6 +165,30 @@ class AgentProfileTests(unittest.TestCase):
         self.assertIn("product-team-memory", result.stdout)
         self.assertIn("examples/workspace", result.stdout)
         self.assertIn("weekly-brief.md", result.stdout)
+
+    def test_interview_capture_command_builder_includes_interview_specific_instructions(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/run_agent_capture.py",
+                "--input",
+                "examples/inputs/002-user-interview-notes.md",
+                "--workspace",
+                "examples/workspace",
+                "--dry-run",
+            ],
+            cwd=ROOT,
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        self.assertIn("User Interview", result.stdout)
+        self.assertIn("Interviewee role:", result.stdout)
+        self.assertIn("Segment:", result.stdout)
+        self.assertIn("Goals:", result.stdout)
+        self.assertIn("Assumptions to validate", result.stdout)
+        self.assertIn("Follow-up questions", result.stdout)
 
 
 if __name__ == "__main__":

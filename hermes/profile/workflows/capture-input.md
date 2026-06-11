@@ -23,6 +23,24 @@ Use this workflow when the user gives Hermes Product Teams customer feedback, in
 7. Do not silently edit `PRD.md`; create a PRD update proposal instead.
 8. List next actions and open questions.
 
+## User Interview extraction requirements
+
+When the input is a user interview, also:
+
+- Preserve interview context, interviewee role, and segment.
+- Separate direct quotes from synthesized insights.
+- Extract the current workflow, pain points, goals, assumptions to validate, follow-up questions, and PRD implications.
+- Keep customer-evidence themes and open questions ahead of premature roadmap commitments.
+- Treat PRD/spec implications as proposals with sources, not silent source-of-truth edits.
+
+For the discovery note, explicitly include these sections when supported by the input:
+
+- `Interviewee role:`
+- `Segment:`
+- `Goals:`
+- `Assumptions to validate:`
+- `Follow-up questions:`
+
 ## Required output
 
 Return a concise summary of what was captured, what artifacts were written or proposed, and what needs human approval.
