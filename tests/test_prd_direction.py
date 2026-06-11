@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -61,6 +62,47 @@ class PrdDirectionTests(unittest.TestCase):
         self.assertIn("Sources reviewed", brief)
         self.assertIn("## Evidence", discovery)
         self.assertIn("## Assumptions", discovery)
+
+    def test_interview_capture_demo_generates_interview_specific_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/002-user-interview-notes.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "002-user-interview-notes.generated.md").read_text(
+                encoding="utf-8"
+            )
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-10.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: User Interview", discovery)
+            self.assertIn("Interviewee role: Head of Customer Success", discovery)
+            self.assertIn("Segment: Mid-market customer-facing team lead", discovery)
+            self.assertIn("## Goals", discovery)
+            self.assertIn("## Assumptions to validate", discovery)
+            self.assertIn("## Follow-up questions", discovery)
+            self.assertIn("source-linked evidence", proposal)
+            self.assertIn("PMs trust AI-generated discovery notes when direct quotes and source links are visible.", insights)
+            self.assertIn("Who should approve proposed PRD/spec edits?", questions)
+            self.assertIn("proposed PRD/spec edits with sources should be the default trust model", decision_log)
+            self.assertIn("Which input source should be validated first", brief)
 
 
 if __name__ == "__main__":

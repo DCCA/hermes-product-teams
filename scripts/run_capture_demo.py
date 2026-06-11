@@ -10,13 +10,22 @@ from pathlib import Path
 @dataclass(frozen=True)
 class CaptureInput:
     slug: str
+    kind: str
     title: str
     source: str
     date: str
     quotes: list[str]
-    pm_note: str
-    potential_decision: str
     raw_text: str
+    pm_note: str = ""
+    potential_decision: str = ""
+    interviewee_role: str = ""
+    segment: str = ""
+    current_workflow: list[str] | None = None
+    pain_points: list[str] | None = None
+    goals: list[str] | None = None
+    assumptions_to_validate: list[str] | None = None
+    follow_up_questions: list[str] | None = None
+    prd_implications: list[str] | None = None
 
 
 DEFAULT_INPUT = Path("examples/inputs/001-customer-feedback-thread.md")
@@ -28,27 +37,85 @@ def read_capture(path: Path) -> CaptureInput:
     title_match = re.search(r"^#\s+(.+)$", text, flags=re.MULTILINE)
     source_match = re.search(r"^Source:\s*(.+)$", text, flags=re.MULTILINE)
     date_match = re.search(r"^Date:\s*(.+)$", text, flags=re.MULTILINE)
+    slug = path.stem
 
-    quotes = [
+    if is_interview_capture(path, text):
+        return CaptureInput(
+            slug=slug,
+            kind="user_interview",
+            title=title_match.group(1).strip() if title_match else slug,
+            source=source_match.group(1).strip() if source_match else str(path),
+            date=date_match.group(1).strip() if date_match else "Unknown date",
+            quotes=extract_quotes(text),
+            raw_text=text,
+            interviewee_role=extract_metadata_value(text, "Role"),
+            segment=extract_metadata_value(text, "Segment"),
+            current_workflow=extract_bullet_section(text, "Current workflow"),
+            pain_points=extract_bullet_section(text, "Pain points"),
+            goals=extract_bullet_section(text, "Goals"),
+            assumptions_to_validate=extract_bullet_section(text, "Assumptions to validate"),
+            follow_up_questions=extract_bullet_section(text, "Follow-up questions"),
+            prd_implications=extract_bullet_section(text, "PRD implications"),
+        )
+
+    return CaptureInput(
+        slug=slug,
+        kind="customer_feedback",
+        title=title_match.group(1).strip() if title_match else slug,
+        source=source_match.group(1).strip() if source_match else str(path),
+        date=date_match.group(1).strip() if date_match else "Unknown date",
+        quotes=extract_quotes(text),
+        raw_text=text,
+        pm_note=section_after_heading(text, "PM note"),
+        potential_decision=section_after_heading(text, "Potential decision needed"),
+    )
+
+
+def is_interview_capture(path: Path, text: str) -> bool:
+    lowered_name = path.name.lower()
+    lowered = text.lower()
+    markers = [
+        "interviewee:",
+        "interviewer:",
+        "direct quotes",
+        "assumptions to validate",
+        "follow-up questions",
+    ]
+    return "interview" in lowered_name or sum(marker in lowered for marker in markers) >= 3
+
+
+def extract_metadata_value(text: str, field: str) -> str:
+    match = re.search(rf"^{re.escape(field)}:\s*(.+)$", text, flags=re.MULTILINE)
+    return match.group(1).strip() if match else ""
+
+
+def extract_quotes(text: str) -> list[str]:
+    block_quotes = [
         re.sub(r"^>\s?", "", line).strip()
         for line in text.splitlines()
         if line.strip().startswith(">") and re.sub(r"^>\s?", "", line).strip()
     ]
+    if block_quotes:
+        return block_quotes
+    return [item.strip('"') for item in extract_bullet_section(text, "Direct quotes")]
 
-    pm_note = section_after_heading(text, "PM note")
-    potential_decision = section_after_heading(text, "Potential decision needed")
 
-    slug = path.stem
-    return CaptureInput(
-        slug=slug,
-        title=title_match.group(1).strip() if title_match else slug,
-        source=source_match.group(1).strip() if source_match else str(path),
-        date=date_match.group(1).strip() if date_match else "Unknown date",
-        quotes=quotes,
-        pm_note=pm_note,
-        potential_decision=potential_decision,
-        raw_text=text,
-    )
+def extract_bullet_section(text: str, heading: str) -> list[str]:
+    body = extract_markdown_section(text, heading)
+    if not body:
+        return []
+    items: list[str] = []
+    for line in body.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("- "):
+            items.append(stripped[2:].strip())
+    return items
+
+
+def extract_markdown_section(text: str, heading: str) -> str:
+    pattern = rf"^##\s+{re.escape(heading)}\s*$\n(?P<body>.*?)(?=^##\s+|\Z)"
+    match = re.search(pattern, text, flags=re.MULTILINE | re.DOTALL)
+    return match.group("body").strip() if match else ""
 
 
 def section_after_heading(text: str, heading: str) -> str:
@@ -73,7 +140,66 @@ def replace_generated_block(path: Path, marker: str, content: str) -> None:
     path.write_text(updated, encoding="utf-8")
 
 
+def bullets(items: list[str]) -> str:
+    return "\n".join(f"- {item}" for item in items)
+
+
 def render_discovery_note(capture: CaptureInput) -> str:
+    if capture.kind == "user_interview":
+        evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
+        return f"""# {capture.title}
+
+Type: User Interview
+Area: Product Discovery / Customer Evidence
+Summary: Interview notes reinforce the need for source-linked discovery memory, explicit PRD proposal workflows, and weekly briefs that surface open questions rather than silently editing source-of-truth docs.
+Source: {capture.source}
+Date: {capture.date}
+Interviewee role: {capture.interviewee_role}
+Segment: {capture.segment}
+
+## Facts
+
+{bullets(capture.current_workflow or [])}
+
+## Evidence
+
+{evidence}
+
+## Pain points
+
+{bullets(capture.pain_points or [])}
+
+## Goals
+
+{bullets(capture.goals or [])}
+
+## Assumptions to validate
+
+{bullets(capture.assumptions_to_validate or [])}
+
+## Follow-up questions
+
+{bullets(capture.follow_up_questions or [])}
+
+## PRD/spec update suggestions
+
+{bullets(capture.prd_implications or [])}
+
+## Next actions
+
+1. Validate which source has the highest-value product evidence today.
+2. Define the approval path for proposed PRD/spec edits.
+3. Test whether source-linked weekly briefs help product, design, and engineering leads.
+
+## Priority
+
+High — foundational trust and product-memory workflow signal.
+
+## Tags
+
+#user-interview #discovery #source-linked-evidence #prd-proposal #weekly-brief
+"""
+
     evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
     return f"""# {capture.title}
 
@@ -141,6 +267,24 @@ High — activation blocker near onboarding.
 
 
 def render_customer_insights(capture: CaptureInput) -> str:
+    if capture.kind == "user_interview":
+        return f"""## {capture.date} — Source-linked product memory from customer-facing teams
+
+Theme: Discovery trust / Product memory
+Signal strength: Medium — one realistic interview with specific workflow pain and trust constraints.
+
+Insight:
+PMs trust AI-generated discovery notes when direct quotes and source links are visible. Teams want source-linked evidence close to product decisions without silently changing source-of-truth docs.
+
+Evidence:
+{chr(10).join(f'- “{quote}”' for quote in capture.quotes)}
+
+Implication:
+The MVP should emphasize source-linked evidence, PRD update proposals instead of silent edits, and weekly briefs that surface discovery signals and open questions.
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
     return f"""## {capture.date} — Activation clarity after first source connection
 
 Theme: Onboarding / Activation
@@ -160,6 +304,27 @@ Source: `examples/inputs/{capture.slug}.md`
 
 
 def render_decision_log(capture: CaptureInput) -> str:
+    if capture.kind == "user_interview":
+        return f"""## {capture.date} — Proposed decision: keep PRD changes as source-linked proposals
+
+Decision: Pending — validate whether proposed PRD/spec edits with sources should be the default trust model.
+Owner: Product lead / PM
+Context: Interview feedback says teams want remembered customer evidence and proposed edits with sources, but do not trust silent AI updates to source-of-truth docs.
+Options considered:
+- Default to PRD update proposals with evidence.
+- Allow silent PRD edits.
+- Keep notes only, without structured proposal artifacts.
+Rationale: Proposal-first behavior preserves trust while still turning messy inputs into usable product memory.
+Evidence: See `examples/inputs/{capture.slug}.md` and generated discovery note.
+Risks: Could add review overhead if proposal formatting is weak.
+Reversibility: High — proposal workflows can evolve without changing source-of-truth docs.
+Follow-ups:
+- Define approver for proposed PRD/spec edits.
+- Validate which source feed should be captured first.
+- Test usefulness of weekly briefs across product/design/engineering.
+Source: {capture.source}
+"""
+
     return f"""## {capture.date} — Proposed decision: prioritize activation/status panel before advanced analytics
 
 Decision: Pending — evaluate whether MVP should prioritize an activation/status panel before advanced analytics.
@@ -182,6 +347,14 @@ Source: {capture.source}
 
 
 def render_open_questions(capture: CaptureInput) -> str:
+    if capture.kind == "user_interview":
+        return f"""## {capture.date} — Discovery trust and PRD proposal workflow
+
+{bullets(capture.follow_up_questions or [])}
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
     return f"""## {capture.date} — Activation setup clarity
 
 - What percentage of users connect a source but never complete activation?
@@ -195,6 +368,36 @@ Source: `examples/inputs/{capture.slug}.md`
 
 
 def render_prd_proposal(capture: CaptureInput) -> str:
+    if capture.kind == "user_interview":
+        return f"""# PRD Update Proposals
+
+<!-- generated:{capture.slug}:start -->
+## {capture.date} — Source-linked evidence and approval-path proposal
+
+Status: Proposed, not applied to `PRD.md`.
+Source: `examples/inputs/{capture.slug}.md`
+
+### Problem update
+
+Product teams want AI help turning messy evidence into discovery memory, but they do not trust silent updates to source-of-truth docs.
+
+### Proposed requirement
+
+The product should preserve source-linked evidence and direct quotes in discovery artifacts, then present PRD/spec changes as proposals that require human approval.
+
+### Proposed workflow requirement
+
+- Keep source-linked evidence close to each proposed change.
+- Show direct quotes when summarizing product signals.
+- Route important requirement changes through a visible approval step.
+- Include weekly briefs that surface discovery signals, pending decisions, and open questions.
+
+### Non-goal
+
+Do not silently rewrite `PRD.md`; retain source-linked evidence and proposal-first behavior.
+<!-- generated:{capture.slug}:end -->
+"""
+
     return f"""# PRD Update Proposals
 
 <!-- generated:{capture.slug}:start -->
@@ -230,6 +433,56 @@ Do not build advanced analytics before users reliably complete setup, unless act
 
 
 def render_weekly_brief(capture: CaptureInput) -> str:
+    if capture.kind == "user_interview":
+        return f"""# Weekly Product Brief — {capture.date}
+
+## Executive summary
+
+This week’s strongest discovery signal is about trust: teams want customer evidence remembered with sources, PRD implications proposed rather than silently applied, and weekly briefs that make open product questions visible.
+
+## Discovery signals
+
+- Customer evidence is scattered across support, Slack, calls, and PM notes.
+- Teams want source-linked discovery notes with direct quotes.
+- Weekly updates currently summarize shipped work better than discovery signals.
+
+## Decisions made
+
+- None finalized.
+
+## Decisions pending
+
+- Who should approve proposed PRD/spec edits?
+- Which input source should be validated first for highest-value feedback capture?
+
+## PRD/spec changes proposed
+
+- Preserve source-linked evidence in discovery artifacts.
+- Keep PRD/spec changes proposal-first with human approval.
+- Treat weekly briefs as a core product-memory output.
+
+## Open questions and risks
+
+- Sample size is still small.
+- Trust could break if source links or quotes are weak.
+- The team may resist extra review overhead if proposal artifacts are noisy.
+
+## Roadmap/issue implications
+
+- Support-ticket clustering looks like a strong next validated input type.
+- Approval-path UX for PRD updates should be treated as a core trust feature.
+
+## Recommended next actions
+
+1. Validate the highest-value input source to capture first.
+2. Define approvers for PRD/spec proposals.
+3. Test weekly brief usefulness with product, design, and engineering leads.
+
+## Sources reviewed
+
+- `examples/inputs/{capture.slug}.md`
+"""
+
     return f"""# Weekly Product Brief — {capture.date}
 
 ## Executive summary

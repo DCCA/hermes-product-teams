@@ -80,9 +80,9 @@ Acceptance criteria:
 - No survey/recruiting workflow is introduced because this is not user research operations.
 - PRD implications remain proposals.
 
-Current status: Partially validated with a realistic input fixture.
+Current status: Partially validated with a realistic input fixture plus deterministic interview artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add interview-specific extraction tests and teach the capture workflow to generate interview discovery artifacts from `examples/inputs/002-user-interview-notes.md`.
+Next gap: Add broader acceptance checks for decision-log and weekly-brief quality, or validate a second interview fixture with a different segment/contradiction pattern.
 
 ## Support ticket cluster
 

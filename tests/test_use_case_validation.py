@@ -79,8 +79,11 @@ class UseCaseValidationTests(unittest.TestCase):
         self.assertIn(
             "Input fixture: `examples/inputs/002-user-interview-notes.md`", content
         )
-        self.assertIn("Current status: Partially validated with a realistic input fixture.", content)
-        self.assertIn("Next gap: Add interview-specific extraction tests", content)
+        self.assertIn(
+            "Current status: Partially validated with a realistic input fixture plus deterministic interview artifact generation covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn("Next gap: Add broader acceptance checks for decision-log and weekly-brief quality", content)
 
     def test_user_test_guide_exists_with_bounded_script_and_trust_checks(self) -> None:
         guide = (ROOT / "docs/user-test-guide.md").read_text(encoding="utf-8")
