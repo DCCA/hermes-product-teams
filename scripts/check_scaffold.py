@@ -10,6 +10,7 @@ REQUIRED_FILES = [
     "docs/market-validation.md",
     "docs/mvp-plan.md",
     "docs/prd-direction.md",
+    "docs/use-case-validation.md",
     "hermes/skills/product-team-memory/SKILL.md",
     "hermes/prompts/capture.md",
     "hermes/prompts/weekly-brief.md",
