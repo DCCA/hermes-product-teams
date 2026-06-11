@@ -25,7 +25,7 @@ Every validated use case should:
 | Use case | Current status |
 | --- | --- |
 | Customer feedback thread | Partially validated with one fixture. |
-| User interview notes | Not yet validated. |
+| User interview notes | Partially validated with one fixture. |
 | Support ticket cluster | Not yet validated. |
 | Internal product decision discussion | Not yet validated. |
 | Product brainstorm | Not yet validated. |
@@ -64,7 +64,7 @@ Target user: PM, founder, designer, or researcher processing a user interview.
 
 User job: Extract pain points, goals, quotes, opportunity themes, contradictions, assumptions, and follow-up questions from interview notes.
 
-Input fixture: Missing — proposed path `examples/inputs/002-user-interview-notes.md`
+Input fixture: `examples/inputs/002-user-interview-notes.md`
 
 Expected artifacts:
 - discovery note;
@@ -80,9 +80,9 @@ Acceptance criteria:
 - No survey/recruiting workflow is introduced because this is not user research operations.
 - PRD implications remain proposals.
 
-Current status: Not yet validated.
+Current status: Partially validated with a realistic input fixture.
 
-Next gap: Add fixture and tests for interview-specific extraction.
+Next gap: Add interview-specific extraction tests and teach the capture workflow to generate interview discovery artifacts from `examples/inputs/002-user-interview-notes.md`.
 
 ## Support ticket cluster
 
