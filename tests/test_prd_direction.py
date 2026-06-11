@@ -144,6 +144,44 @@ class PrdDirectionTests(unittest.TestCase):
             self.assertIn("Status: Proposed, not applied to `PRD.md`.", proposal)
             self.assertIn("Severity/confidence", brief)
 
+    def test_internal_decision_capture_demo_generates_decision_specific_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/004-internal-decision-discussion.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "004-internal-decision-discussion.generated.md").read_text(
+                encoding="utf-8"
+            )
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-12.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: Internal Product Decision Discussion", discovery)
+            self.assertIn("Decision status: Proposed", discovery)
+            self.assertIn("## Options considered", discovery)
+            self.assertIn("## Risks", discovery)
+            self.assertIn("## Reversibility", discovery)
+            self.assertIn("Decision: Proposed — standardize on PRD proposal review before implementation starts.", decision_log)
+            self.assertIn("What evidence threshold should trigger a PRD proposal", questions)
+            self.assertIn("Status: Proposed, not applied to `PRD.md`.", proposal)
+            self.assertIn("decisions pending", brief.lower())
+
 
 if __name__ == "__main__":
     unittest.main()

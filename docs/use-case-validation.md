@@ -27,7 +27,7 @@ Every validated use case should:
 | Customer feedback thread | Partially validated with one fixture. |
 | User interview notes | Partially validated with one fixture. |
 | Support ticket cluster | Partially validated with one fixture. |
-| Internal product decision discussion | Not yet validated. |
+| Internal product decision discussion | Partially validated with one fixture. |
 | Product brainstorm | Not yet validated. |
 | Weekly synthesis from multiple inputs | Not yet validated. |
 
@@ -117,7 +117,7 @@ Target user: Product/design/engineering trio deciding between product options.
 
 User job: Preserve the decision, context, options considered, rationale, risks, reversibility, and follow-ups.
 
-Input fixture: Missing — proposed path `examples/inputs/004-internal-decision-discussion.md`
+Input fixture: `examples/inputs/004-internal-decision-discussion.md`
 
 Expected artifacts:
 - decision log entry;
@@ -133,9 +133,9 @@ Acceptance criteria:
 - Reversibility is labeled.
 - The output does not silently rewrite the PRD.
 
-Current status: Not yet validated.
+Current status: Partially validated with a realistic internal-decision fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add fixture and decision-log-specific tests.
+Next gap: Add broader acceptance checks for decision quality, or validate a second decision discussion with a different status/reversibility pattern.
 
 ## Product brainstorm
 

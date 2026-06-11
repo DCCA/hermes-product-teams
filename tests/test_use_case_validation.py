@@ -118,6 +118,39 @@ class UseCaseValidationTests(unittest.TestCase):
         )
         self.assertIn("Next gap: Add broader acceptance checks for decision/triage quality", content)
 
+    def test_internal_decision_fixture_exists_with_decision_specific_content(self) -> None:
+        fixture = (ROOT / "examples/inputs/004-internal-decision-discussion.md").read_text(
+            encoding="utf-8"
+        )
+
+        required_phrases = [
+            "# Internal Product Decision Discussion",
+            "Decision status:",
+            "Participants:",
+            "Options considered",
+            "Rationale",
+            "Risks",
+            "Reversibility",
+            "Requirement implications",
+        ]
+        for phrase in required_phrases:
+            self.assertIn(phrase, fixture)
+
+    def test_internal_decision_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| Internal product decision discussion | Partially validated with one fixture. |", content
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/004-internal-decision-discussion.md`", content
+        )
+        self.assertIn(
+            "Current status: Partially validated with a realistic internal-decision fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn("Next gap: Add broader acceptance checks for decision quality", content)
+
     def test_user_test_guide_exists_with_bounded_script_and_trust_checks(self) -> None:
         guide = (ROOT / "docs/user-test-guide.md").read_text(encoding="utf-8")
 

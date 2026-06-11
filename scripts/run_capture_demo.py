@@ -34,6 +34,15 @@ class CaptureInput:
     likely_root_causes: list[str] | None = None
     support_impact: list[str] | None = None
     product_follow_ups: list[str] | None = None
+    decision_status: str = ""
+    participants: str = ""
+    context_points: list[str] | None = None
+    options_considered: list[str] | None = None
+    rationale_points: list[str] | None = None
+    risks: list[str] | None = None
+    reversibility: list[str] | None = None
+    decision_follow_ups: list[str] | None = None
+    requirement_implications: list[str] | None = None
 
 
 DEFAULT_INPUT = Path("examples/inputs/001-customer-feedback-thread.md")
@@ -85,6 +94,26 @@ def read_capture(path: Path) -> CaptureInput:
             product_follow_ups=extract_bullet_section(text, "Product follow-ups"),
         )
 
+    if is_internal_decision_capture(path, text):
+        return CaptureInput(
+            slug=slug,
+            kind="internal_decision_discussion",
+            title=title_match.group(1).strip() if title_match else slug,
+            source=source_match.group(1).strip() if source_match else str(path),
+            date=date_match.group(1).strip() if date_match else "Unknown date",
+            quotes=extract_quotes(text),
+            raw_text=text,
+            decision_status=extract_metadata_value(text, "Decision status"),
+            participants=extract_metadata_value(text, "Participants"),
+            context_points=extract_bullet_section(text, "Context"),
+            options_considered=extract_bullet_section(text, "Options considered"),
+            rationale_points=extract_bullet_section(text, "Rationale"),
+            risks=extract_bullet_section(text, "Risks"),
+            reversibility=extract_bullet_section(text, "Reversibility"),
+            decision_follow_ups=extract_bullet_section(text, "Follow-ups"),
+            requirement_implications=extract_bullet_section(text, "Requirement implications"),
+        )
+
     return CaptureInput(
         slug=slug,
         kind="customer_feedback",
@@ -122,6 +151,19 @@ def is_support_ticket_capture(path: Path, text: str) -> bool:
         "confidence:",
     ]
     return "support-ticket" in lowered_name or sum(marker in lowered for marker in markers) >= 4
+
+
+def is_internal_decision_capture(path: Path, text: str) -> bool:
+    lowered_name = path.name.lower()
+    lowered = text.lower()
+    markers = [
+        "decision status:",
+        "options considered",
+        "reversibility",
+        "requirement implications",
+        "participants:",
+    ]
+    return "decision-discussion" in lowered_name or sum(marker in lowered for marker in markers) >= 4
 
 
 def extract_metadata_value(text: str, field: str) -> str:
@@ -182,6 +224,10 @@ def replace_generated_block(path: Path, marker: str, content: str) -> None:
 
 def bullets(items: list[str]) -> str:
     return "\n".join(f"- {item}" for item in items)
+
+
+def first_item(items: list[str] | None, fallback: str) -> str:
+    return items[0] if items else fallback
 
 
 def render_discovery_note(capture: CaptureInput) -> str:
@@ -304,6 +350,59 @@ High — repeated customer pain in a visible recurring workflow.
 #support-ticket-cluster #export-reliability #severity-high #confidence-medium #prd-proposal
 """
 
+    if capture.kind == "internal_decision_discussion":
+        evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
+        return f"""# {capture.title}
+
+Type: Internal Product Decision Discussion
+Area: Product Discovery / Decision Memory
+Summary: Product, design, and engineering are converging on a proposal-review handoff that keeps discovery-driven requirement changes visible before implementation starts.
+Source: {capture.source}
+Date: {capture.date}
+Decision status: {capture.decision_status}
+Participants: {capture.participants}
+
+## Context
+
+{bullets(capture.context_points or [])}
+
+## Evidence
+
+{evidence}
+
+## Options considered
+
+{bullets(capture.options_considered or [])}
+
+## Rationale
+
+{bullets(capture.rationale_points or [])}
+
+## Risks
+
+{bullets(capture.risks or [])}
+
+## Reversibility
+
+{bullets(capture.reversibility or [])}
+
+## Requirement implications
+
+{bullets(capture.requirement_implications or [])}
+
+## Follow-ups
+
+{bullets(capture.decision_follow_ups or [])}
+
+## Priority
+
+Medium-high — affects discovery-to-implementation trust and coordination.
+
+## Tags
+
+#internal-decision #prd-proposal #decision-memory #reversibility #product-trio
+"""
+
     evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
     return f"""# {capture.title}
 
@@ -407,6 +506,24 @@ Export reliability and visible recovery guidance should be triaged before adding
 Source: `examples/inputs/{capture.slug}.md`
 """
 
+    if capture.kind == "internal_decision_discussion":
+        return f"""## {capture.date} — Decision-memory handoff before implementation
+
+Theme: Discovery-to-implementation trust
+Signal strength: Medium — clear internal alignment pressure from product, design, and engineering.
+
+Insight:
+The product trio wants a visible proposal-review checkpoint so discovery-driven requirement changes become implementation-ready without silently mutating `PRD.md`.
+
+Evidence:
+{chr(10).join(f'- “{quote}”' for quote in capture.quotes)}
+
+Implication:
+The MVP should treat proposal review as the trust-preserving handoff from discovery memory into execution planning.
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
     return f"""## {capture.date} — Activation clarity after first source connection
 
 Theme: Onboarding / Activation
@@ -468,6 +585,25 @@ Follow-ups:
 Source: {capture.source}
 """
 
+    if capture.kind == "internal_decision_discussion":
+        return f"""## {capture.date} — Proposal-review handoff before implementation
+
+Decision: {capture.decision_status} — standardize on PRD proposal review before implementation starts.
+Owner: Product lead / design lead / engineering lead
+Context: The team wants discovery insights to influence implementation planning without silently editing `PRD.md`, while giving engineering a clearer requirement handoff.
+Options considered:
+{bullets(capture.options_considered or [])}
+Rationale:
+{bullets(capture.rationale_points or [])}
+Evidence: See `examples/inputs/{capture.slug}.md` and generated discovery note.
+Risks:
+{bullets(capture.risks or [])}
+Reversibility: {first_item(capture.reversibility, 'High — the decision can be revisited with little structural cost.')}
+Follow-ups:
+{bullets(capture.decision_follow_ups or [])}
+Source: {capture.source}
+"""
+
     return f"""## {capture.date} — Proposed decision: prioritize activation/status panel before advanced analytics
 
 Decision: Pending — evaluate whether MVP should prioritize an activation/status panel before advanced analytics.
@@ -511,6 +647,17 @@ Source: `examples/inputs/{capture.slug}.md`
 ## Product follow-ups from source
 
 {product_follow_ups}
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
+    if capture.kind == "internal_decision_discussion":
+        return f"""## {capture.date} — Decision-review handoff
+
+- What evidence threshold should trigger a PRD proposal review before implementation?
+- Who should approve proposal-only requirement changes?
+- Which changes can skip the extra review step without creating trust risk?
+- How should weekly briefs summarize pending decision reviews?
 
 Source: `examples/inputs/{capture.slug}.md`
 """
@@ -585,6 +732,33 @@ The product should expose export-job state, failure status, and retry guidance f
 ### Non-goal
 
 Do not create support tickets or automate support operations; keep this as product-memory synthesis and proposal-only PRD updates.
+<!-- generated:{capture.slug}:end -->
+"""
+
+    if capture.kind == "internal_decision_discussion":
+        return f"""# PRD Update Proposals
+
+<!-- generated:{capture.slug}:start -->
+## {capture.date} — Proposal-review gate for discovery-driven requirement changes
+
+Status: Proposed, not applied to `PRD.md`.
+Source: `examples/inputs/{capture.slug}.md`
+
+### Problem update
+
+Discovery-driven requirement changes can influence implementation planning before the product trio has a shared, visible approval checkpoint.
+
+### Proposed requirement
+
+Important discovery-driven requirement changes should go through a visible PRD proposal review before implementation starts.
+
+### Proposed workflow requirement
+
+{bullets(capture.requirement_implications or [])}
+
+### Non-goal
+
+Do not silently rewrite `PRD.md` or let implementation proceed against AI-generated requirement changes without visible review.
 <!-- generated:{capture.slug}:end -->
 """
 
@@ -716,6 +890,54 @@ This week’s strongest support-derived discovery signal is that export reliabil
 1. Measure export timeout rate by report size and tier.
 2. Inspect logs for the ticketed export failures.
 3. Decide whether export reliability should outrank net-new export polish.
+
+## Sources reviewed
+
+- `examples/inputs/{capture.slug}.md`
+"""
+
+    if capture.kind == "internal_decision_discussion":
+        return f"""# Weekly Product Brief — {capture.date}
+
+## Executive summary
+
+This week’s strongest internal signal is that discovery-driven requirement changes need a clearer proposal-review handoff before implementation starts.
+
+## Discovery signals
+
+- Product, design, and engineering want a visible trust boundary before building against evolving discovery notes.
+- The team sees risk in silent PRD changes while implementation is already moving.
+- A lightweight review checkpoint could reduce ambiguous requirement shifts.
+
+## Decisions made
+
+- None finalized.
+
+## Decisions pending
+
+- Whether to standardize PRD proposal review before implementation starts.
+- Who should approve proposal-only requirement changes.
+
+## PRD/spec changes proposed
+
+{bullets(capture.requirement_implications or [])}
+
+## Open questions and risks
+
+- Decisions pending around approval ownership and evidence threshold.
+- An extra review step could slow trivial changes.
+- Proposal templates could become noisy if they are not concise.
+
+## Roadmap/issue implications
+
+- Discovery-to-implementation trust should be treated as a first-class workflow feature.
+- Weekly briefs should summarize pending proposal reviews and decisions made.
+
+## Recommended next actions
+
+1. Define the minimum evidence threshold for opening a PRD proposal.
+2. Decide who approves proposal-only requirement changes.
+3. Pilot the review flow for the next two discovery-driven changes.
 
 ## Sources reviewed
 
