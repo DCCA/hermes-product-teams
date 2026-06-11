@@ -52,6 +52,36 @@ class UseCaseValidationTests(unittest.TestCase):
         for guardrail in required_guardrails:
             self.assertIn(guardrail, content)
 
+    def test_user_interview_fixture_exists_with_interview_specific_content(self) -> None:
+        fixture = (ROOT / "examples/inputs/002-user-interview-notes.md").read_text(
+            encoding="utf-8"
+        )
+
+        required_phrases = [
+            "# User Interview Notes",
+            "Interviewee:",
+            "Role:",
+            "Direct quotes",
+            "Pain points",
+            "Current workflow",
+            "Follow-up questions",
+            "PRD implications",
+        ]
+        for phrase in required_phrases:
+            self.assertIn(phrase, fixture)
+
+    def test_user_interview_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| User interview notes | Partially validated with one fixture. |", content
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/002-user-interview-notes.md`", content
+        )
+        self.assertIn("Current status: Partially validated with a realistic input fixture.", content)
+        self.assertIn("Next gap: Add interview-specific extraction tests", content)
+
     def test_user_test_guide_exists_with_bounded_script_and_trust_checks(self) -> None:
         guide = (ROOT / "docs/user-test-guide.md").read_text(encoding="utf-8")
 
