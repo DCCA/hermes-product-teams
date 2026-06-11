@@ -99,6 +99,27 @@ class AgentProfileTests(unittest.TestCase):
         self.assertIn("examples/inputs/001-customer-feedback-thread.md", result.stdout)
         self.assertIn("examples/workspace", result.stdout)
 
+    def test_weekly_brief_command_builder_outputs_real_hermes_command(self) -> None:
+        result = subprocess.run(
+            [
+                sys.executable,
+                "scripts/run_weekly_brief.py",
+                "--workspace",
+                "examples/workspace",
+                "--dry-run",
+            ],
+            cwd=ROOT,
+            check=True,
+            text=True,
+            capture_output=True,
+        )
+
+        self.assertIn("hermes chat", result.stdout)
+        self.assertIn("--profile product-teams", result.stdout)
+        self.assertIn("product-team-memory", result.stdout)
+        self.assertIn("examples/workspace", result.stdout)
+        self.assertIn("weekly-brief.md", result.stdout)
+
 
 if __name__ == "__main__":
     unittest.main()

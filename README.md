@@ -100,6 +100,17 @@ Under the hood this invokes:
 hermes chat --profile product-teams --skills product-team-memory -q "..."
 ```
 
+Generate the weekly brief the same way:
+
+```bash
+python3 scripts/run_weekly_brief.py \
+  --workspace examples/workspace \
+  --dry-run
+
+python3 scripts/run_weekly_brief.py \
+  --workspace examples/workspace
+```
+
 ## Deterministic demo and validation
 
 Run:

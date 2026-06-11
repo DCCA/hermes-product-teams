@@ -32,6 +32,7 @@ REQUIRED_FILES = [
     "scripts/check_scaffold.py",
     "scripts/install_profile.py",
     "scripts/run_agent_capture.py",
+    "scripts/run_weekly_brief.py",
     "scripts/run_capture_demo.py",
     "tests/__init__.py",
     "tests/test_agent_profile.py",

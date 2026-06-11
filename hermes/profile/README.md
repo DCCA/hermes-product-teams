@@ -67,10 +67,15 @@ The script invokes `hermes chat --profile product-teams --skills product-team-me
 
 ## Weekly brief
 
-After capturing product inputs, run Hermes with the weekly brief workflow:
+After capturing product inputs, generate the weekly brief with the packaged runner:
 
 ```bash
-hermes chat --profile product-teams --skills product-team-memory -q "$(cat hermes/profile/workflows/weekly-brief.md)"
+python3 scripts/run_weekly_brief.py \
+  --workspace examples/workspace \
+  --dry-run
+
+python3 scripts/run_weekly_brief.py \
+  --workspace examples/workspace
 ```
 
 ## Profile files
