@@ -28,7 +28,7 @@ Every validated use case should:
 | User interview notes | Partially validated with one fixture. |
 | Support ticket cluster | Partially validated with one fixture. |
 | Internal product decision discussion | Partially validated with one fixture. |
-| Product brainstorm | Not yet validated. |
+| Product brainstorm | Partially validated with one fixture. |
 | Weekly synthesis from multiple inputs | Not yet validated. |
 
 ## Customer feedback thread
@@ -143,7 +143,7 @@ Target user: Founder or PM exploring rough product ideas.
 
 User job: Separate ideas, assumptions, hypotheses, non-goals, risks, and next actions from a messy brainstorm.
 
-Input fixture: Missing — proposed path `examples/inputs/005-product-brainstorm.md`
+Input fixture: `examples/inputs/005-product-brainstorm.md`
 
 Expected artifacts:
 - discovery note;
@@ -157,11 +157,11 @@ Acceptance criteria:
 - Assumptions and hypotheses are labeled.
 - Non-goals are preserved when stated.
 - The workflow recommends validation steps instead of prematurely prioritizing roadmap items.
-- The output stays inside the Product Discovery Memory Agent direction.
+- The output stays inside the Discovery + Living Docs Agent direction.
 
-Current status: Not yet validated.
+Current status: Partially validated with a realistic brainstorm fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add fixture and assumption-vs-fact checks.
+Next gap: Add broader acceptance checks for idea-quality and evidence thresholds, or validate a second brainstorm with a different level of founder conviction.
 
 ## Weekly synthesis from multiple inputs
 

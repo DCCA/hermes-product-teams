@@ -182,6 +182,51 @@ class PrdDirectionTests(unittest.TestCase):
             self.assertIn("Status: Proposed, not applied to `PRD.md`.", proposal)
             self.assertIn("decisions pending", brief.lower())
 
+    def test_product_brainstorm_capture_demo_generates_assumption_and_non_goal_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/005-product-brainstorm.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "005-product-brainstorm.generated.md").read_text(
+                encoding="utf-8"
+            )
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-13.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: Product Brainstorm", discovery)
+            self.assertIn("## Raw ideas", discovery)
+            self.assertIn("## Assumptions", discovery)
+            self.assertIn("## Hypotheses", discovery)
+            self.assertIn("## Non-goals", discovery)
+            self.assertIn("## Risks", discovery)
+            self.assertNotIn("## Facts", discovery)
+            self.assertIn("structured customer recap", insights)
+            self.assertIn("Decision: Pending — validate whether AI-generated customer recap should be the first brainstorm theme to prototype.", decision_log)
+            self.assertIn("What evidence would prove founders will reuse a generated customer recap each week?", questions)
+            self.assertIn("No PRD proposal generated yet", proposal)
+            self.assertIn("evidence threshold", proposal)
+            self.assertIn("## Potential product implications", brief)
+            self.assertNotIn("## PRD/spec changes proposed", brief)
+            self.assertIn("ideas are still hypotheses", brief.lower())
+
 
 if __name__ == "__main__":
     unittest.main()

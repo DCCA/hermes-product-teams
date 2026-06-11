@@ -43,6 +43,13 @@ class CaptureInput:
     reversibility: list[str] | None = None
     decision_follow_ups: list[str] | None = None
     requirement_implications: list[str] | None = None
+    brainstorm_participants: str = ""
+    raw_idea_cluster: list[str] | None = None
+    brainstorm_assumptions: list[str] | None = None
+    brainstorm_hypotheses: list[str] | None = None
+    brainstorm_non_goals: list[str] | None = None
+    brainstorm_risks: list[str] | None = None
+    brainstorm_next_actions: list[str] | None = None
 
 
 DEFAULT_INPUT = Path("examples/inputs/001-customer-feedback-thread.md")
@@ -114,6 +121,24 @@ def read_capture(path: Path) -> CaptureInput:
             requirement_implications=extract_bullet_section(text, "Requirement implications"),
         )
 
+    if is_product_brainstorm_capture(path, text):
+        return CaptureInput(
+            slug=slug,
+            kind="product_brainstorm",
+            title=title_match.group(1).strip() if title_match else slug,
+            source=source_match.group(1).strip() if source_match else str(path),
+            date=date_match.group(1).strip() if date_match else "Unknown date",
+            quotes=extract_quotes(text),
+            raw_text=text,
+            brainstorm_participants=extract_metadata_value(text, "Participants"),
+            raw_idea_cluster=extract_bullet_section(text, "Raw idea cluster"),
+            brainstorm_assumptions=extract_bullet_section(text, "Assumptions"),
+            brainstorm_hypotheses=extract_bullet_section(text, "Hypotheses"),
+            brainstorm_non_goals=extract_bullet_section(text, "Non-goals"),
+            brainstorm_risks=extract_bullet_section(text, "Risks"),
+            brainstorm_next_actions=extract_bullet_section(text, "Next actions"),
+        )
+
     return CaptureInput(
         slug=slug,
         kind="customer_feedback",
@@ -164,6 +189,19 @@ def is_internal_decision_capture(path: Path, text: str) -> bool:
         "participants:",
     ]
     return "decision-discussion" in lowered_name or sum(marker in lowered for marker in markers) >= 4
+
+
+def is_product_brainstorm_capture(path: Path, text: str) -> bool:
+    lowered_name = path.name.lower()
+    lowered = text.lower()
+    markers = [
+        "raw idea cluster",
+        "assumptions",
+        "hypotheses",
+        "non-goals",
+        "participants:",
+    ]
+    return "product-brainstorm" in lowered_name or sum(marker in lowered for marker in markers) >= 4
 
 
 def extract_metadata_value(text: str, field: str) -> str:
@@ -403,6 +441,54 @@ Medium-high — affects discovery-to-implementation trust and coordination.
 #internal-decision #prd-proposal #decision-memory #reversibility #product-trio
 """
 
+    if capture.kind == "product_brainstorm":
+        evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
+        return f"""# {capture.title}
+
+Type: Product Brainstorm
+Area: Product Discovery / Idea Framing
+Summary: The brainstorm suggests a source-linked weekly customer recap could be a strong wedge, but the ideas are still hypotheses and should remain clearly separated from roadmap commitments.
+Source: {capture.source}
+Date: {capture.date}
+Participants: {capture.brainstorm_participants}
+
+## Raw ideas
+
+{bullets(capture.raw_idea_cluster or [])}
+
+## Evidence
+
+{evidence}
+
+## Assumptions
+
+{bullets(capture.brainstorm_assumptions or [])}
+
+## Hypotheses
+
+{bullets(capture.brainstorm_hypotheses or [])}
+
+## Non-goals
+
+{bullets(capture.brainstorm_non_goals or [])}
+
+## Risks
+
+{bullets(capture.brainstorm_risks or [])}
+
+## Next actions
+
+{bullets(capture.brainstorm_next_actions or [])}
+
+## Priority
+
+Medium — promising direction, but still low-evidence exploration.
+
+## Tags
+
+#product-brainstorm #hypothesis #non-goals #weekly-recap #prd-proposal
+"""
+
     evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
     return f"""# {capture.title}
 
@@ -524,6 +610,24 @@ The MVP should treat proposal review as the trust-preserving handoff from discov
 Source: `examples/inputs/{capture.slug}.md`
 """
 
+    if capture.kind == "product_brainstorm":
+        return f"""## {capture.date} — Structured customer recap as a possible wedge
+
+Theme: Founder-facing synthesis / idea framing
+Signal strength: Low-medium — promising wedge ideas, but still early brainstorm territory.
+
+Insight:
+A structured customer recap could be a compelling first workflow if it stays source-linked, labels hypotheses clearly, and avoids drifting into roadmap automation.
+
+Evidence:
+{chr(10).join(f'- “{quote}”' for quote in capture.quotes)}
+
+Implication:
+The MVP can explore a recap-first wedge, but it should keep confidence labeling and non-goals explicit so brainstorm ideas do not look validated.
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
     return f"""## {capture.date} — Activation clarity after first source connection
 
 Theme: Onboarding / Activation
@@ -604,6 +708,25 @@ Follow-ups:
 Source: {capture.source}
 """
 
+    if capture.kind == "product_brainstorm":
+        return f"""## {capture.date} — Proposed decision: prototype a source-linked weekly recap before broader product-memory expansion
+
+Decision: Pending — validate whether AI-generated customer recap should be the first brainstorm theme to prototype.
+Owner: Founder / PM
+Context: The brainstorm suggests a weekly recap could be a sticky wedge if it preserves quotes, labels hypotheses clearly, and avoids roadmap-tool drift.
+Options considered:
+- Start with a structured customer recap as the first artifact.
+- Jump straight to a full discovery repository.
+- Add action automation before synthesis trust is proven.
+Rationale: A recap-first wedge may create immediate founder value while keeping the scope inside discovery memory rather than execution tooling.
+Evidence: See `examples/inputs/{capture.slug}.md` and generated discovery note.
+Risks: The recap could feel generic or overconfident if evidence is thin.
+Reversibility: High — a recap workflow can expand later if repeated use proves real value.
+Follow-ups:
+{bullets(capture.brainstorm_next_actions or [])}
+Source: {capture.source}
+"""
+
     return f"""## {capture.date} — Proposed decision: prioritize activation/status panel before advanced analytics
 
 Decision: Pending — evaluate whether MVP should prioritize an activation/status panel before advanced analytics.
@@ -658,6 +781,21 @@ Source: `examples/inputs/{capture.slug}.md`
 - Who should approve proposal-only requirement changes?
 - Which changes can skip the extra review step without creating trust risk?
 - How should weekly briefs summarize pending decision reviews?
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
+    if capture.kind == "product_brainstorm":
+        return f"""## {capture.date} — Brainstorm validation questions
+
+- What evidence would prove founders will reuse a generated customer recap each week?
+- What confidence labeling is needed so ideas do not look like roadmap commitments?
+- Which non-goals must stay visible in every brainstorm-derived artifact?
+- When is there enough evidence to attach a PRD proposal to a brainstorm theme?
+
+## Next actions from source
+
+{bullets(capture.brainstorm_next_actions or [])}
 
 Source: `examples/inputs/{capture.slug}.md`
 """
@@ -759,6 +897,33 @@ Important discovery-driven requirement changes should go through a visible PRD p
 ### Non-goal
 
 Do not silently rewrite `PRD.md` or let implementation proceed against AI-generated requirement changes without visible review.
+<!-- generated:{capture.slug}:end -->
+"""
+
+    if capture.kind == "product_brainstorm":
+        return f"""# PRD Update Proposals
+
+<!-- generated:{capture.slug}:start -->
+## {capture.date} — No PRD proposal generated yet
+
+Source: `examples/inputs/{capture.slug}.md`
+Evidence threshold: not yet met for a concrete requirement proposal.
+
+### Why no proposal yet
+
+- The brainstorm is still primarily a set of ideas, assumptions, and hypotheses.
+- The strongest wedge candidate still needs proof of repeated user value.
+- Non-goals and trust boundaries are clearer than requirement-level evidence right now.
+
+### What would unlock a proposal
+
+- Evidence that founders repeatedly revisit a source-linked recap artifact.
+- Clear proof that recap outputs improve weekly product understanding.
+- Stronger signal that a recap-first workflow should become a committed product requirement.
+
+### Current guardrail
+
+Do not turn brainstorm ideas into validated requirements or rewrite `PRD.md` before the evidence threshold is met.
 <!-- generated:{capture.slug}:end -->
 """
 
@@ -938,6 +1103,56 @@ This week’s strongest internal signal is that discovery-driven requirement cha
 1. Define the minimum evidence threshold for opening a PRD proposal.
 2. Decide who approves proposal-only requirement changes.
 3. Pilot the review flow for the next two discovery-driven changes.
+
+## Sources reviewed
+
+- `examples/inputs/{capture.slug}.md`
+"""
+
+    if capture.kind == "product_brainstorm":
+        return f"""# Weekly Product Brief — {capture.date}
+
+## Executive summary
+
+This week’s founder-facing idea signal is that a source-linked customer recap could be a compelling wedge, but the ideas are still hypotheses and need evidence before becoming product commitments.
+
+## Discovery signals
+
+- Founders want one place to review the week’s customer signal without losing quotes.
+- Trust increases when evidence is visible and hypotheses are clearly labeled.
+- The brainstorm explicitly rejects roadmap-tool drift.
+
+## Decisions made
+
+- None finalized.
+
+## Decisions pending
+
+- Whether a structured customer recap should be the first brainstorm theme to prototype.
+- What evidence threshold should trigger a PRD proposal from a brainstorm artifact.
+
+## Potential product implications
+
+- A source-linked weekly customer recap may be a promising first-class artifact.
+- Brainstorm-derived outputs should label assumptions, hypotheses, and non-goals explicitly.
+- Any PRD implications should remain below the proposal threshold until stronger evidence exists.
+
+## Open questions and risks
+
+- These ideas are still hypotheses, not validated commitments.
+- The recap may feel generic if source evidence is too thin.
+- Too many generated artifacts could create review fatigue.
+
+## Roadmap/issue implications
+
+- A recap-first wedge may be more testable than a broad discovery platform.
+- Confidence labeling should be treated as a trust feature, not polish.
+
+## Recommended next actions
+
+1. Test whether founders revisit a weekly customer recap artifact.
+2. Validate the evidence threshold for attaching PRD proposals.
+3. Compare recap-only output versus recap plus open questions.
 
 ## Sources reviewed
 

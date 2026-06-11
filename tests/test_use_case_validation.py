@@ -151,6 +151,42 @@ class UseCaseValidationTests(unittest.TestCase):
         )
         self.assertIn("Next gap: Add broader acceptance checks for decision quality", content)
 
+    def test_product_brainstorm_fixture_exists_with_brainstorm_specific_content(self) -> None:
+        fixture = (ROOT / "examples/inputs/005-product-brainstorm.md").read_text(
+            encoding="utf-8"
+        )
+
+        required_phrases = [
+            "# Product Brainstorm",
+            "Participants:",
+            "Raw idea cluster",
+            "Assumptions",
+            "Hypotheses",
+            "Non-goals",
+            "Risks",
+            "Next actions",
+        ]
+        for phrase in required_phrases:
+            self.assertIn(phrase, fixture)
+
+    def test_product_brainstorm_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| Product brainstorm | Partially validated with one fixture. |", content
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/005-product-brainstorm.md`", content
+        )
+        self.assertIn(
+            "Current status: Partially validated with a realistic brainstorm fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn(
+            "Next gap: Add broader acceptance checks for idea-quality and evidence thresholds",
+            content,
+        )
+
     def test_user_test_guide_exists_with_bounded_script_and_trust_checks(self) -> None:
         guide = (ROOT / "docs/user-test-guide.md").read_text(encoding="utf-8")
 
