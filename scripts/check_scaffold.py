@@ -22,7 +22,9 @@ REQUIRED_FILES = [
     "examples/inputs/001-customer-feedback-thread.md",
     "scripts/check_scaffold.py",
     "scripts/run_capture_demo.py",
+    "tests/__init__.py",
     "tests/test_prd_direction.py",
+    "tests/test_use_case_validation.py",
 ]
 
 
