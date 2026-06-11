@@ -63,7 +63,7 @@ Initial scaffold plus first deterministic capture demo. Run:
 ```bash
 python3 scripts/run_capture_demo.py
 python3 scripts/check_scaffold.py
-python3 -m unittest tests.test_prd_direction -v
+python3 -m unittest discover -v
 ```
 
 The demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
@@ -74,3 +74,5 @@ The demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
 - open questions;
 - a PRD update proposal;
 - a weekly product brief.
+
+For manual validation, use `docs/user-test-guide.md` to run a 5–10 minute user test of the customer feedback demo before expanding to additional use cases.

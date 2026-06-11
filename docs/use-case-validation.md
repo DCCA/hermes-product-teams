@@ -215,3 +215,5 @@ A use case is **Ready for user test** when:
 - a PM/founder can understand the output without explanation.
 
 The MVP is **ready for a real user test** when at least four core use cases are ready and `docs/user-test-guide.md` exists with a 5–10 minute test script.
+
+Current user-test-script status: `docs/user-test-guide.md` exists for the customer feedback demo and should be expanded as additional use cases become ready.

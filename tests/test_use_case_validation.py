@@ -82,6 +82,29 @@ class UseCaseValidationTests(unittest.TestCase):
         self.assertIn("Current status: Partially validated with a realistic input fixture.", content)
         self.assertIn("Next gap: Add interview-specific extraction tests", content)
 
+    def test_user_test_guide_exists_with_bounded_script_and_trust_checks(self) -> None:
+        guide = (ROOT / "docs/user-test-guide.md").read_text(encoding="utf-8")
+
+        required_sections = [
+            "# User Test Guide",
+            "## 5–10 minute test script",
+            "## Success criteria",
+            "## Observer checklist",
+        ]
+        for section in required_sections:
+            self.assertIn(section, guide)
+
+        required_checks = [
+            "Discovery + Living Docs Agent",
+            "source-linked evidence",
+            "facts from assumptions",
+            "PRD update proposal",
+            "human approval",
+            "must not merge, deploy, create issues, send messages, or change external systems",
+        ]
+        for check in required_checks:
+            self.assertIn(check, guide)
+
 
 if __name__ == "__main__":
     unittest.main()
