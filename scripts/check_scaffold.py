@@ -9,6 +9,7 @@ REQUIRED_FILES = [
     "docs/concept.md",
     "docs/market-validation.md",
     "docs/mvp-plan.md",
+    "docs/prd-direction.md",
     "hermes/skills/product-team-memory/SKILL.md",
     "hermes/prompts/capture.md",
     "hermes/prompts/weekly-brief.md",
@@ -20,6 +21,7 @@ REQUIRED_FILES = [
     "examples/inputs/001-customer-feedback-thread.md",
     "scripts/check_scaffold.py",
     "scripts/run_capture_demo.py",
+    "tests/test_prd_direction.py",
 ]
 
 

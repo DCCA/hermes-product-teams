@@ -63,6 +63,7 @@ Initial scaffold plus first deterministic capture demo. Run:
 ```bash
 python3 scripts/run_capture_demo.py
 python3 scripts/check_scaffold.py
+python3 -m unittest tests.test_prd_direction -v
 ```
 
 The demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
