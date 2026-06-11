@@ -14,6 +14,7 @@ DEFAULT_WORKFLOW = ROOT / "hermes" / "profile" / "workflows" / "weekly-brief.md"
 
 def build_prompt(workspace: Path, workflow_path: Path) -> str:
     workflow = workflow_path.read_text(encoding="utf-8")
+    target_dir = workspace / "Weekly Briefs"
     return f"""You are running the Hermes Product Teams weekly brief workflow.
 
 Workflow path: {workflow_path}
@@ -22,8 +23,11 @@ Workflow instructions:
 {workflow}
 
 Workspace path: {workspace}
+Target weekly brief directory: {target_dir}
 
-Read the workspace artifacts, then draft a weekly product brief and write it to the workspace's Weekly Briefs directory when Hermes has file-write access. Preserve source-linked evidence, separate facts from assumptions, summarize PRD/spec updates only as proposals, and do not silently edit source-of-truth docs.
+Read the configured workspace artifacts and produce the weekly product brief for that workspace.
+When Hermes has file-write access, write the brief into the target weekly brief directory using the workflow's naming convention.
+Preserve source-linked evidence, separate facts from assumptions, summarize PRD/spec updates only as proposals, and do not silently edit source-of-truth docs.
 """
 
 
@@ -41,7 +45,9 @@ def build_command(profile: str, prompt: str) -> list[str]:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Run Hermes Product Teams weekly brief via Hermes.")
+    parser = argparse.ArgumentParser(
+        description="Run Hermes Product Teams weekly brief generation via Hermes."
+    )
     parser.add_argument(
         "--workspace",
         type=Path,
