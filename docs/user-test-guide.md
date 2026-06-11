@@ -110,20 +110,20 @@ Product context:
 Fixture used:
 
 ## Observed behavior
-- 
+-
 
 ## Trust blockers
-- 
+-
 
 ## Most useful artifact
-- 
+-
 
 ## Confusing or overreaching artifact
-- 
+-
 
 ## Evidence gaps
-- 
+-
 
 ## Next recommended product change
-- 
+-
 ```
