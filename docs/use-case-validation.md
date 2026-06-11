@@ -26,7 +26,7 @@ Every validated use case should:
 | --- | --- |
 | Customer feedback thread | Partially validated with one fixture. |
 | User interview notes | Partially validated with one fixture. |
-| Support ticket cluster | Not yet validated. |
+| Support ticket cluster | Partially validated with one fixture. |
 | Internal product decision discussion | Not yet validated. |
 | Product brainstorm | Not yet validated. |
 | Weekly synthesis from multiple inputs | Not yet validated. |
@@ -90,7 +90,7 @@ Target user: PM or support lead reviewing repeated support issues.
 
 User job: Identify recurring product pain, severity, affected segment, likely root cause, support impact, and product follow-ups from a cluster of tickets.
 
-Input fixture: Missing — proposed path `examples/inputs/003-support-ticket-cluster.md`
+Input fixture: `examples/inputs/003-support-ticket-cluster.md`
 
 Expected artifacts:
 - discovery note;
@@ -107,9 +107,9 @@ Acceptance criteria:
 - The workflow does not create tickets or change external systems.
 - The workflow remains product-memory synthesis, not support operations automation.
 
-Current status: Not yet validated.
+Current status: Partially validated with a realistic support-cluster fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add fixture and severity/confidence acceptance checks.
+Next gap: Add broader acceptance checks for decision/triage quality, or validate a second support cluster with a different severity/confidence pattern.
 
 ## Internal product decision discussion
 

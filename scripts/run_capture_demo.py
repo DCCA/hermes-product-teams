@@ -26,6 +26,14 @@ class CaptureInput:
     assumptions_to_validate: list[str] | None = None
     follow_up_questions: list[str] | None = None
     prd_implications: list[str] | None = None
+    severity: str = ""
+    confidence: str = ""
+    affected_segment: str = ""
+    ticket_summaries: list[str] | None = None
+    repeated_issue_pattern: list[str] | None = None
+    likely_root_causes: list[str] | None = None
+    support_impact: list[str] | None = None
+    product_follow_ups: list[str] | None = None
 
 
 DEFAULT_INPUT = Path("examples/inputs/001-customer-feedback-thread.md")
@@ -58,6 +66,25 @@ def read_capture(path: Path) -> CaptureInput:
             prd_implications=extract_bullet_section(text, "PRD implications"),
         )
 
+    if is_support_ticket_capture(path, text):
+        return CaptureInput(
+            slug=slug,
+            kind="support_ticket_cluster",
+            title=title_match.group(1).strip() if title_match else slug,
+            source=source_match.group(1).strip() if source_match else str(path),
+            date=date_match.group(1).strip() if date_match else "Unknown date",
+            quotes=extract_quotes(text),
+            raw_text=text,
+            severity=extract_metadata_value(text, "Severity"),
+            confidence=extract_metadata_value(text, "Confidence"),
+            affected_segment=extract_metadata_value(text, "Affected segment"),
+            ticket_summaries=extract_bullet_section(text, "Ticket summaries"),
+            repeated_issue_pattern=extract_bullet_section(text, "Repeated issue pattern"),
+            likely_root_causes=extract_bullet_section(text, "Likely root causes"),
+            support_impact=extract_bullet_section(text, "Support impact"),
+            product_follow_ups=extract_bullet_section(text, "Product follow-ups"),
+        )
+
     return CaptureInput(
         slug=slug,
         kind="customer_feedback",
@@ -82,6 +109,19 @@ def is_interview_capture(path: Path, text: str) -> bool:
         "follow-up questions",
     ]
     return "interview" in lowered_name or sum(marker in lowered for marker in markers) >= 3
+
+
+def is_support_ticket_capture(path: Path, text: str) -> bool:
+    lowered_name = path.name.lower()
+    lowered = text.lower()
+    markers = [
+        "ticket summaries",
+        "repeated issue pattern",
+        "support impact",
+        "severity:",
+        "confidence:",
+    ]
+    return "support-ticket" in lowered_name or sum(marker in lowered for marker in markers) >= 4
 
 
 def extract_metadata_value(text: str, field: str) -> str:
@@ -200,6 +240,70 @@ High — foundational trust and product-memory workflow signal.
 #user-interview #discovery #source-linked-evidence #prd-proposal #weekly-brief
 """
 
+    if capture.kind == "support_ticket_cluster":
+        evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
+        return f"""# {capture.title}
+
+Type: Support Ticket Cluster
+Area: Product Discovery / Support Evidence
+Summary: Repeated export complaints suggest a reliability problem in CSV export flows, with direct support cost and trust risk for weekly reporting workflows.
+Source: {capture.source}
+Date: {capture.date}
+Affected segment: {capture.affected_segment}
+Severity: {capture.severity}
+Confidence: {capture.confidence}
+
+## Facts
+
+{bullets(capture.ticket_summaries or [])}
+
+## Evidence
+
+{evidence}
+
+## Repeated issue pattern
+
+{bullets(capture.repeated_issue_pattern or [])}
+
+## Likely root causes
+
+{bullets(capture.likely_root_causes or [])}
+
+## Support impact
+
+{bullets(capture.support_impact or [])}
+
+## Product follow-ups
+
+{bullets(capture.product_follow_ups or [])}
+
+## Open questions
+
+- What percentage of CSV exports time out for weekly reports?
+- Which report sizes or account tiers correlate with export failure?
+- Are scheduled exports failing for the same reason as manual exports?
+
+## PRD/spec update suggestions
+
+- Add explicit export status states and retry guidance.
+- Instrument export timeout rate by report size and tier.
+- Treat export reliability as a prerequisite before expanding export formats.
+
+## Next actions
+
+1. Pull export timeout metrics by tier and report size.
+2. Review job logs for the three ticketed export failures.
+3. Decide whether export reliability should outrank net-new export polish.
+
+## Priority
+
+High — repeated customer pain in a visible recurring workflow.
+
+## Tags
+
+#support-ticket-cluster #export-reliability #severity-high #confidence-medium #prd-proposal
+"""
+
     evidence = "\n".join(f"- “{quote}”" for quote in capture.quotes)
     return f"""# {capture.title}
 
@@ -285,6 +389,24 @@ The MVP should emphasize source-linked evidence, PRD update proposals instead of
 Source: `examples/inputs/{capture.slug}.md`
 """
 
+    if capture.kind == "support_ticket_cluster":
+        return f"""## {capture.date} — Export reliability pain from repeated support tickets
+
+Theme: Support-driven product reliability
+Signal strength: {capture.confidence} — three related tickets in one week and direct evidence of repeated customer pain.
+
+Insight:
+Customers and support are seeing the same export timeout issue across manual and scheduled export flows, which makes weekly reporting feel unreliable.
+
+Evidence:
+{chr(10).join(f'- “{quote}”' for quote in capture.quotes)}
+
+Implication:
+Export reliability and visible recovery guidance should be triaged before adding more export formats or reporting polish.
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
     return f"""## {capture.date} — Activation clarity after first source connection
 
 Theme: Onboarding / Activation
@@ -325,6 +447,27 @@ Follow-ups:
 Source: {capture.source}
 """
 
+    if capture.kind == "support_ticket_cluster":
+        return f"""## {capture.date} — Proposed decision: triage export performance before adding more export formats
+
+Decision: Pending — evaluate whether export reliability should outrank net-new reporting polish in the near-term backlog.
+Owner: Product lead / PM with support input
+Context: Multiple support tickets describe repeated CSV export timeouts, unclear retry guidance, and manual report fulfillment for weekly reporting workflows.
+Options considered:
+- Triage export performance and status guidance first.
+- Add more export/reporting polish first.
+- Document a support workaround and defer product changes.
+Rationale: Repeated reliability failures in a visible recurring workflow can erode trust faster than missing export-format breadth.
+Evidence: See `examples/inputs/{capture.slug}.md` and generated discovery note.
+Risks: Sample size is still limited and may over-represent one segment.
+Reversibility: High — instrumentation and export-status guidance are incremental changes.
+Follow-ups:
+- Measure export timeout rate by report size and tier.
+- Review job logs for the failing export runs.
+- Confirm whether scheduled and manual exports share the same bottleneck.
+Source: {capture.source}
+"""
+
     return f"""## {capture.date} — Proposed decision: prioritize activation/status panel before advanced analytics
 
 Decision: Pending — evaluate whether MVP should prioritize an activation/status panel before advanced analytics.
@@ -351,6 +494,23 @@ def render_open_questions(capture: CaptureInput) -> str:
         return f"""## {capture.date} — Discovery trust and PRD proposal workflow
 
 {bullets(capture.follow_up_questions or [])}
+
+Source: `examples/inputs/{capture.slug}.md`
+"""
+
+    if capture.kind == "support_ticket_cluster":
+        product_follow_ups = bullets(capture.product_follow_ups or [])
+        return f"""## {capture.date} — Export reliability and support load
+
+- What percentage of CSV exports time out for weekly reports?
+- Which account tiers or report sizes see the highest export failure rate?
+- Are scheduled exports failing for the same reason as manual exports?
+- What recovery guidance should users see before they contact support?
+- Should export reliability outrank additional export-format work this cycle?
+
+## Product follow-ups from source
+
+{product_follow_ups}
 
 Source: `examples/inputs/{capture.slug}.md`
 """
@@ -395,6 +555,36 @@ The product should preserve source-linked evidence and direct quotes in discover
 ### Non-goal
 
 Do not silently rewrite `PRD.md`; retain source-linked evidence and proposal-first behavior.
+<!-- generated:{capture.slug}:end -->
+"""
+
+    if capture.kind == "support_ticket_cluster":
+        return f"""# PRD Update Proposals
+
+<!-- generated:{capture.slug}:start -->
+## {capture.date} — Export reliability and recovery-guidance proposal
+
+Status: Proposed, not applied to `PRD.md`.
+Source: `examples/inputs/{capture.slug}.md`
+
+### Problem update
+
+Repeated support tickets show that CSV exports for weekly reports can time out without clear status or retry guidance, forcing support into manual report delivery.
+
+### Proposed requirement
+
+The product should expose export-job state, failure status, and retry guidance for weekly reporting exports before expanding export-format breadth.
+
+### Proposed workflow requirement
+
+- Instrument export timeout rate by report size and account tier.
+- Show queued, running, failed, and retryable export states.
+- Provide explicit recovery guidance when an export stalls or times out.
+- Label severity/confidence in synthesized support-cluster artifacts.
+
+### Non-goal
+
+Do not create support tickets or automate support operations; keep this as product-memory synthesis and proposal-only PRD updates.
 <!-- generated:{capture.slug}:end -->
 """
 
@@ -477,6 +667,55 @@ This week’s strongest discovery signal is about trust: teams want customer evi
 1. Validate the highest-value input source to capture first.
 2. Define approvers for PRD/spec proposals.
 3. Test weekly brief usefulness with product, design, and engineering leads.
+
+## Sources reviewed
+
+- `examples/inputs/{capture.slug}.md`
+"""
+
+    if capture.kind == "support_ticket_cluster":
+        return f"""# Weekly Product Brief — {capture.date}
+
+## Executive summary
+
+This week’s strongest support-derived discovery signal is that export reliability is becoming a visible trust issue for recurring weekly reports.
+
+## Discovery signals
+
+- Three related tickets in one week point to repeated CSV export timeouts.
+- Customers do not get clear retry guidance or status when exports stall.
+- Support is manually fulfilling reports that should be self-serve.
+
+## Decisions made
+
+- None finalized.
+
+## Decisions pending
+
+- Whether to triage export performance before adding more export formats.
+
+## PRD/spec changes proposed
+
+- Add explicit export status and retry guidance.
+- Instrument timeout rate by report size and account tier.
+- Label Severity/confidence in synthesized support-cluster outputs.
+
+## Open questions and risks
+
+- Severity/confidence: {capture.severity} / {capture.confidence}.
+- Sample size is still limited to one cluster.
+- The root cause may differ between scheduled and manual exports.
+
+## Roadmap/issue implications
+
+- Export reliability may outrank report-format expansion.
+- Instrumentation work should precede broad workflow automation.
+
+## Recommended next actions
+
+1. Measure export timeout rate by report size and tier.
+2. Inspect logs for the ticketed export failures.
+3. Decide whether export reliability should outrank net-new export polish.
 
 ## Sources reviewed
 

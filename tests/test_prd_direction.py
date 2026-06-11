@@ -104,6 +104,46 @@ class PrdDirectionTests(unittest.TestCase):
             self.assertIn("proposed PRD/spec edits with sources should be the default trust model", decision_log)
             self.assertIn("Which input source should be validated first", brief)
 
+    def test_support_ticket_capture_demo_generates_severity_and_confidence_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/003-support-ticket-cluster.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "003-support-ticket-cluster.generated.md").read_text(
+                encoding="utf-8"
+            )
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-11.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: Support Ticket Cluster", discovery)
+            self.assertIn("Severity: High", discovery)
+            self.assertIn("Confidence: Medium", discovery)
+            self.assertIn("## Repeated issue pattern", discovery)
+            self.assertIn("## Support impact", discovery)
+            self.assertIn("same export timeout issue", insights)
+            self.assertIn("triage export performance before adding more export formats", decision_log)
+            self.assertIn("What percentage of CSV exports time out", questions)
+            self.assertIn("Status: Proposed, not applied to `PRD.md`.", proposal)
+            self.assertIn("Severity/confidence", brief)
+
 
 if __name__ == "__main__":
     unittest.main()
