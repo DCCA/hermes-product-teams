@@ -70,11 +70,40 @@ class AgentProfileTests(unittest.TestCase):
             self.assertTrue(
                 (profile_root / "skills" / "product-team-memory" / "SKILL.md").exists()
             )
+            self.assertTrue((profile_root / "scripts" / "run_agent_capture.py").exists())
+            self.assertTrue((profile_root / "scripts" / "run_weekly_brief.py").exists())
 
             config = (profile_root / "config.yaml").read_text(encoding="utf-8")
             self.assertIn(str(ROOT / "examples" / "workspace"), config)
             self.assertNotIn("API_KEY", config)
             self.assertNotIn("token:", config.lower())
+
+            capture_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(profile_root / "scripts" / "run_agent_capture.py"),
+                    "--input",
+                    str(ROOT / "examples" / "inputs" / "001-customer-feedback-thread.md"),
+                    "--dry-run",
+                ],
+                cwd=profile_root,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+            weekly_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(profile_root / "scripts" / "run_weekly_brief.py"),
+                    "--dry-run",
+                ],
+                cwd=profile_root,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+            self.assertIn(str(ROOT / "examples" / "workspace"), capture_result.stdout)
+            self.assertIn("Weekly Briefs", weekly_result.stdout)
 
     def test_capture_command_builder_outputs_real_hermes_command(self) -> None:
         result = subprocess.run(

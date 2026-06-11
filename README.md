@@ -75,9 +75,30 @@ This creates a runnable Hermes profile at:
 
 ```text
 ~/.hermes/profiles/product-teams/
+├── config.yaml
+├── SOUL.md
+├── distribution.yaml
+├── workflows/
+├── skills/
+└── scripts/
+    ├── run_agent_capture.py
+    └── run_weekly_brief.py
 ```
 
-Then dry-run the capture command:
+You can run the packaged scripts directly from the installed profile:
+
+```bash
+python3 ~/.hermes/profiles/product-teams/scripts/run_agent_capture.py \
+  --input /absolute/path/to/customer-feedback.md \
+  --dry-run
+
+python3 ~/.hermes/profiles/product-teams/scripts/run_weekly_brief.py \
+  --dry-run
+```
+
+After install, both scripts default to the workspace configured in `~/.hermes/profiles/product-teams/config.yaml`, so `--workspace` is optional unless you want to override it.
+
+Or run from the repo checkout while developing:
 
 ```bash
 python3 scripts/run_agent_capture.py \

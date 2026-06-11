@@ -9,6 +9,10 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PROFILE_SOURCE = ROOT / "hermes" / "profile"
 SKILL_SOURCE = ROOT / "hermes" / "skills" / "product-team-memory"
+SCRIPT_SOURCES = [
+    ROOT / "scripts" / "run_agent_capture.py",
+    ROOT / "scripts" / "run_weekly_brief.py",
+]
 DEFAULT_PROFILE_NAME = "product-teams"
 
 
@@ -32,6 +36,12 @@ def install_profile(hermes_home: Path, workspace: Path, profile_name: str) -> Pa
 
     copy_tree(PROFILE_SOURCE / "workflows", profile_root / "workflows")
     copy_tree(SKILL_SOURCE, profile_root / "skills" / "product-team-memory")
+
+    scripts_root = profile_root / "scripts"
+    scripts_root.mkdir(parents=True, exist_ok=True)
+    for script_path in SCRIPT_SOURCES:
+        shutil.copy2(script_path, scripts_root / script_path.name)
+
     render_config(profile_root, workspace)
     return profile_root
 
@@ -60,7 +70,9 @@ def main() -> int:
     profile_root = install_profile(args.hermes_home, args.workspace, args.profile_name)
     print(f"Installed Hermes Product Teams profile: {profile_root}")
     print(f"Workspace: {args.workspace.resolve()}")
-    print(f"Run: hermes chat --profile {args.profile_name} --skills product-team-memory")
+    print(f"Run capture: python3 {profile_root / 'scripts' / 'run_agent_capture.py'} --input /path/to/input.md")
+    print(f"Run weekly brief: python3 {profile_root / 'scripts' / 'run_weekly_brief.py'}")
+    print(f"Or run: hermes chat --profile {args.profile_name} --skills product-team-memory")
     return 0
 
 

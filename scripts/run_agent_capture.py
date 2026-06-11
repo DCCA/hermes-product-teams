@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shlex
 import subprocess
 from pathlib import Path
@@ -9,7 +10,35 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROFILE = "product-teams"
-DEFAULT_WORKFLOW = ROOT / "hermes" / "profile" / "workflows" / "capture-input.md"
+WORKSPACE_PATTERN = re.compile(r'^\s*path:\s*["\']?([^"\']+)["\']?\s*$')
+
+
+def resolve_workflow_path() -> Path:
+    repo_path = ROOT / "hermes" / "profile" / "workflows" / "capture-input.md"
+    installed_path = ROOT / "workflows" / "capture-input.md"
+    if repo_path.exists():
+        return repo_path
+    if installed_path.exists():
+        return installed_path
+    raise FileNotFoundError("Could not locate capture-input.md workflow")
+
+
+def resolve_default_workspace() -> Path:
+    config_path = ROOT / "config.yaml"
+    if config_path.exists():
+        in_workspace = False
+        for line in config_path.read_text(encoding="utf-8").splitlines():
+            stripped = line.strip()
+            if stripped == "workspace:":
+                in_workspace = True
+                continue
+            if in_workspace and line and not line.startswith((" ", "\t")):
+                break
+            if in_workspace:
+                match = WORKSPACE_PATTERN.match(line)
+                if match:
+                    return Path(match.group(1)).expanduser()
+    return ROOT / "examples" / "workspace"
 
 
 def build_prompt(input_path: Path, workspace: Path, workflow_path: Path) -> str:
@@ -45,11 +74,11 @@ def main() -> int:
     parser.add_argument(
         "--workspace",
         type=Path,
-        default=ROOT / "examples" / "workspace",
+        default=resolve_default_workspace(),
         help="Product workspace path.",
     )
     parser.add_argument("--profile", default=DEFAULT_PROFILE)
-    parser.add_argument("--workflow", type=Path, default=DEFAULT_WORKFLOW)
+    parser.add_argument("--workflow", type=Path, default=resolve_workflow_path())
     parser.add_argument("--dry-run", action="store_true", help="Print command without running Hermes.")
     args = parser.parse_args()
 
