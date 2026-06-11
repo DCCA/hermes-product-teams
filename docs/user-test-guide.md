@@ -9,18 +9,22 @@ This is a local/private Markdown workspace test. It should not require SaaS inte
 ## Setup
 
 1. Start from the repository root.
-2. Run the deterministic demo:
+2. Run a quick readiness check:
+   ```bash
+   python3 scripts/check_scaffold.py
+   ```
+3. Run the deterministic demo:
    ```bash
    python3 scripts/run_capture_demo.py
    ```
-3. Open these generated artifacts:
+4. Open these generated artifacts:
    - `examples/workspace/Discovery Notes/001-customer-feedback-thread.generated.md`
    - `examples/workspace/Customer Insights.md`
    - `examples/workspace/Decision Log.md`
    - `examples/workspace/Open Questions.md`
    - `examples/workspace/PRD Update Proposals.md`
    - `examples/workspace/Weekly Briefs/weekly-brief-2026-06-10.generated.md`
-4. Keep the source input open for comparison:
+5. Keep the source input open for comparison:
    - `examples/inputs/001-customer-feedback-thread.md`
 
 ## 5–10 minute test script
@@ -31,7 +35,7 @@ Tell the tester:
 
 > This MVP is a Discovery + Living Docs Agent. It helps product teams convert messy feedback and product conversations into discovery notes, customer insights, decision memory, PRD update proposals, open questions, and weekly briefs. It should preserve source-linked evidence and require human approval before important docs change.
 
-Confirm the tester understands that the workflow must **do not merge, deploy, create issues, send messages, or change external systems** during this test.
+Confirm the tester understands that the workflow must **not merge, deploy, create issues, send messages, or change external systems** during this test.
 
 ### Minute 1–3: Inspect the source and discovery note
 
@@ -96,7 +100,7 @@ Record pass/fail/notes for each item:
 - The tester identified at least one assumption or open question.
 - The tester understood that the PRD update proposal requires human approval.
 - The tester understood that the workflow should not silently modify source-of-truth docs.
-- The tester understood the test must do not merge, deploy, create issues, send messages, or change external systems.
+- The tester understood the test must not merge, deploy, create issues, send messages, or change external systems.
 - The tester could describe which artifact was most useful and why.
 - The tester identified the most important missing trust/readiness gap.
 

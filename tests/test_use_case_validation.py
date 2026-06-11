@@ -70,7 +70,7 @@ class UseCaseValidationTests(unittest.TestCase):
             "facts from assumptions",
             "PRD update proposal",
             "human approval",
-            "do not merge, deploy, create issues, send messages, or change external systems",
+            "must not merge, deploy, create issues, send messages, or change external systems",
         ]
         for check in required_checks:
             self.assertIn(check, guide)
