@@ -1,0 +1,32 @@
+# Example Hermes profile config for Hermes Product Teams.
+# scripts/install_profile.py renders this to ~/.hermes/profiles/product-teams/config.yaml.
+
+profile:
+  name: product-teams
+  description: Hermes Product Teams Discovery + Living Docs Agent
+
+workspace:
+  path: "{{WORKSPACE_PATH}}"
+  artifacts:
+    discovery_notes: "Discovery Notes"
+    customer_insights: "Customer Insights.md"
+    decision_log: "Decision Log.md"
+    open_questions: "Open Questions.md"
+    prd_update_proposals: "PRD Update Proposals.md"
+    weekly_briefs: "Weekly Briefs"
+    prd: "PRD.md"
+
+skills:
+  preload:
+    - product-team-memory
+
+tools:
+  recommended_toolsets:
+    - file
+    - terminal
+    - skills
+
+permissions:
+  source_of_truth_edits: propose_first
+  external_system_changes: require_explicit_approval
+  allowed_default_write_scope: "{{WORKSPACE_PATH}}"

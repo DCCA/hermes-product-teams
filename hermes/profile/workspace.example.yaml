@@ -1,0 +1,24 @@
+workspace:
+  path: examples/workspace
+  artifact_contract:
+    discovery_notes:
+      path: Discovery Notes/
+      purpose: One source-linked note per meaningful product input.
+    customer_insights:
+      path: Customer Insights.md
+      purpose: Durable customer/user themes with direct evidence.
+    decision_log:
+      path: Decision Log.md
+      purpose: Decisions, options, rationale, risks, and reversibility.
+    open_questions:
+      path: Open Questions.md
+      purpose: Unresolved discovery and product questions.
+    prd_update_proposals:
+      path: PRD Update Proposals.md
+      purpose: Proposed PRD/spec edits requiring human approval.
+    weekly_briefs:
+      path: Weekly Briefs/
+      purpose: Concise product-team communication with sources reviewed.
+    prd:
+      path: PRD.md
+      purpose: Source-of-truth product requirements snapshot; do not silently edit.

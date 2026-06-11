@@ -1,0 +1,19 @@
+name: product-teams
+display_name: Hermes Product Teams
+description: Discovery + Living Docs Agent for product discovery, decisions, PRD update proposals, and weekly briefs.
+version: 0.1.0
+
+files:
+  soul: SOUL.md
+  config: config.example.yaml
+  readme: README.md
+
+skills:
+  - product-team-memory
+
+workflows:
+  - workflows/capture-input.md
+  - workflows/weekly-brief.md
+  - workflows/review-prd-proposals.md
+
+workspace_example: workspace.example.yaml

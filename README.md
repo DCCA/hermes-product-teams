@@ -58,7 +58,51 @@ The demo workspace uses Markdown files:
 
 ## Current status
 
-Initial scaffold plus first deterministic capture demo. Run:
+Hermes Product Teams now includes both:
+
+1. an installable Hermes profile package under `hermes/profile/`; and
+2. a deterministic demo harness under `scripts/run_capture_demo.py`.
+
+## Install the actual Hermes profile
+
+From the repository root:
+
+```bash
+python3 scripts/install_profile.py --workspace examples/workspace
+```
+
+This creates a runnable Hermes profile at:
+
+```text
+~/.hermes/profiles/product-teams/
+```
+
+Then dry-run the capture command:
+
+```bash
+python3 scripts/run_agent_capture.py \
+  --input examples/inputs/001-customer-feedback-thread.md \
+  --workspace examples/workspace \
+  --dry-run
+```
+
+Run it through Hermes:
+
+```bash
+python3 scripts/run_agent_capture.py \
+  --input examples/inputs/001-customer-feedback-thread.md \
+  --workspace examples/workspace
+```
+
+Under the hood this invokes:
+
+```bash
+hermes chat --profile product-teams --skills product-team-memory -q "..."
+```
+
+## Deterministic demo and validation
+
+Run:
 
 ```bash
 python3 scripts/run_capture_demo.py
@@ -66,7 +110,7 @@ python3 scripts/check_scaffold.py
 python3 -m unittest discover -v
 ```
 
-The demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
+The deterministic demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
 
 - a generated discovery note;
 - customer insight updates;
