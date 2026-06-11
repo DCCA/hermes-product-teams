@@ -74,9 +74,11 @@ class UseCaseValidationTests(unittest.TestCase):
         content = USE_CASE_DOC.read_text(encoding="utf-8")
 
         self.assertIn(
+            "| User interview notes | Partially validated with one fixture. |", content
+        )
+        self.assertIn(
             "Input fixture: `examples/inputs/002-user-interview-notes.md`", content
         )
-        self.assertIn("User interview notes: Partially validated with one fixture.", content)
         self.assertIn("Current status: Partially validated with a realistic input fixture.", content)
         self.assertIn("Next gap: Add interview-specific extraction tests", content)
 

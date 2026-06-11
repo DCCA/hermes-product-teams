@@ -80,7 +80,7 @@ Acceptance criteria:
 - No survey/recruiting workflow is introduced because this is not user research operations.
 - PRD implications remain proposals.
 
-Current status: Partially validated with a realistic input fixture. User interview notes: Partially validated with one fixture.
+Current status: Partially validated with a realistic input fixture.
 
 Next gap: Add interview-specific extraction tests and teach the capture workflow to generate interview discovery artifacts from `examples/inputs/002-user-interview-notes.md`.
 
