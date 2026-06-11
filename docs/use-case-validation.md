@@ -22,12 +22,14 @@ Every validated use case should:
 
 ## Validation status summary
 
-- Customer feedback thread: Partially validated with one fixture.
-- User interview notes: Not yet validated.
-- Support ticket cluster: Not yet validated.
-- Internal product decision discussion: Not yet validated.
-- Product brainstorm: Not yet validated.
-- Weekly synthesis from multiple inputs: Not yet validated.
+| Use case | Current status |
+| --- | --- |
+| Customer feedback thread | Partially validated with one fixture. |
+| User interview notes | Not yet validated. |
+| Support ticket cluster | Not yet validated. |
+| Internal product decision discussion | Not yet validated. |
+| Product brainstorm | Not yet validated. |
+| Weekly synthesis from multiple inputs | Not yet validated. |
 
 ## Customer feedback thread
 
@@ -187,6 +189,18 @@ Acceptance criteria:
 Current status: Not yet validated.
 
 Next gap: Generalize the script to process multiple inputs and synthesize a combined weekly brief.
+
+## Validation commands
+
+Run these before claiming the repo is user-test-ready:
+
+```bash
+python3 scripts/run_capture_demo.py
+python3 scripts/check_scaffold.py
+python3 -m unittest discover -v
+python3 -m py_compile scripts/*.py tests/*.py
+git diff --check
+```
 
 ## Readiness rubric
 
