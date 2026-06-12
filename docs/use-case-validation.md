@@ -16,8 +16,8 @@ Every validated use case should:
 - create or update product-memory artifacts;
 - produce PRD update proposals when requirements/spec changes are implied;
 - not silently edit PRD.md;
-- avoid drifting into not roadmap management;
-- avoid drifting into not user research operations;
+- stay within the memory/discovery/docs wedge — not roadmap management;
+- stay within product-memory synthesis — not user research operations;
 - remain useful in a local/private Markdown workspace.
 
 ## Validation status summary
