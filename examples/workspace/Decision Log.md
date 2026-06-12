@@ -15,7 +15,7 @@ Reversibility:
 Follow-ups:
 Source:
 
-<!-- generated:decision-log:start -->
+<!-- generated:decision-log:001-customer-feedback-thread:start -->
 ## 2026-06-10 — Proposed decision: prioritize activation/status panel before advanced analytics
 
 Decision: Pending — evaluate whether MVP should prioritize an activation/status panel before advanced analytics.
@@ -34,4 +34,4 @@ Follow-ups:
 - Review support tickets.
 - Define smallest status-panel requirement.
 Source: Simulated Slack thread from customer-facing team
-<!-- generated:decision-log:end -->
+<!-- generated:decision-log:001-customer-feedback-thread:end -->

@@ -276,10 +276,62 @@ class PrdDirectionTests(unittest.TestCase):
 
             self.assertTrue((workspace / "Discovery Notes" / "001-customer-feedback-thread.generated.md").exists())
             self.assertTrue((workspace / "Discovery Notes" / "005-product-brainstorm.generated.md").exists())
-            self.assertFalse((workspace / "Customer Insights.md").exists())
-            self.assertFalse((workspace / "Decision Log.md").exists())
-            self.assertFalse((workspace / "Open Questions.md").exists())
-            self.assertFalse((workspace / "PRD Update Proposals.md").exists())
+
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            self.assertIn("Activation clarity after first source connection", insights)
+            self.assertIn("same export timeout issue", insights)
+            self.assertIn("PMs trust AI-generated discovery notes when direct quotes and source links are visible.", insights)
+
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            self.assertIn("prioritize activation/status panel before advanced analytics", decision_log)
+            self.assertIn("standardize on PRD proposal review before implementation starts.", decision_log)
+
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            self.assertIn("What percentage of CSV exports time out", questions)
+            self.assertIn("What evidence would prove founders will reuse a generated customer recap each week?", questions)
+
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            self.assertIn("Activation/status panel proposal", proposal)
+            self.assertIn("Export reliability and recovery-guidance proposal", proposal)
+            self.assertIn("No PRD proposal generated yet", proposal)
+
+    def test_sequential_captures_accumulate_and_rerun_is_idempotent(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+
+            def capture(fixture: str) -> None:
+                subprocess.run(
+                    [
+                        sys.executable,
+                        "scripts/run_capture_demo.py",
+                        "--input",
+                        f"examples/inputs/{fixture}",
+                        "--workspace",
+                        str(workspace),
+                    ],
+                    cwd=ROOT,
+                    check=True,
+                    text=True,
+                    capture_output=True,
+                )
+
+            capture("001-customer-feedback-thread.md")
+            capture("003-support-ticket-cluster.md")
+
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            self.assertIn("Activation clarity after first source connection", insights)
+            self.assertIn("same export timeout issue", insights)
+
+            before = {
+                path.name: path.read_text(encoding="utf-8")
+                for path in workspace.glob("*.md")
+            }
+            capture("001-customer-feedback-thread.md")
+            after = {
+                path.name: path.read_text(encoding="utf-8")
+                for path in workspace.glob("*.md")
+            }
+            self.assertEqual(before, after)
 
 
 if __name__ == "__main__":

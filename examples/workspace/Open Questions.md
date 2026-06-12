@@ -8,7 +8,7 @@
 
 ## Go-to-market
 
-<!-- generated:open-questions:start -->
+<!-- generated:open-questions:001-customer-feedback-thread:start -->
 ## 2026-06-10 — Activation setup clarity
 
 - What percentage of users connect a source but never complete activation?
@@ -18,4 +18,4 @@
 - Should activation/status panel outrank advanced analytics for the MVP?
 
 Source: `examples/inputs/001-customer-feedback-thread.md`
-<!-- generated:open-questions:end -->
+<!-- generated:open-questions:001-customer-feedback-thread:end -->
