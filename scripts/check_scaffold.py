@@ -38,6 +38,7 @@ REQUIRED_FILES = [
     "tests/__init__.py",
     "tests/test_agent_profile.py",
     "tests/test_prd_direction.py",
+    "tests/test_text_capture.py",
     "tests/test_use_case_validation.py",
 ]
 
