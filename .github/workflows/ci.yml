@@ -15,8 +15,14 @@ jobs:
           python-version: "3.12"
       - name: Check scaffold
         run: python3 scripts/check_scaffold.py
+      - name: Record PRD.md checksum
+        run: sha256sum "examples/workspace/PRD.md" | tee /tmp/prd-md.sha256
       - name: Run committed demo
         run: python3 scripts/run_capture_demo.py
+      - name: Verify PRD.md unchanged by demo
+        run: sha256sum -c /tmp/prd-md.sha256
+      - name: Check workspace trust invariants
+        run: python3 scripts/check_workspace.py
       - name: Run unit tests
         run: python3 -m unittest discover -v
       - name: Verify Python syntax
