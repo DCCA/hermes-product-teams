@@ -83,17 +83,25 @@ Maintain these workspace artifacts:
 
 ## Classification Taxonomy
 
-- `Discovery Note`
-- `Customer Feedback`
+This list is the canonical input-classification taxonomy. Workflows (for example
+`hermes/profile/workflows/capture-input.md`) and scripts (`scripts/run_capture_demo.py`,
+`scripts/run_agent_capture.py`) must use these exact class names — they match the
+`Type:` lines rendered in generated discovery notes.
+
+- `Customer Feedback / Roadmap Signal`
 - `User Interview`
-- `Product Idea`
-- `Decision`
+- `Support Ticket Cluster`
+- `Internal Product Decision Discussion`
+- `Product Brainstorm`
+- `Discovery Note`
 - `PRD Update`
-- `Roadmap Signal`
 - `Stakeholder Update`
 - `Research Finding`
 - `Open Question`
 - `Archive`
+
+Inputs that do not clearly match a class above are treated as generic
+`Product-Team Input` until a human classifies them.
 
 ## Decision Log Format
 

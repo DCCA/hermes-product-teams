@@ -11,7 +11,7 @@ Use this workflow when the user gives Hermes Product Teams customer feedback, in
 ## Steps
 
 1. Read the input and identify its source.
-2. Classify the input as one of: Customer Feedback, User Interview, Support Ticket Cluster, Product Brainstorm, Decision Discussion, PRD Update Proposal, Weekly Brief Material, or Archive.
+2. Classify the input using the canonical taxonomy from the `product-team-memory` skill (`SKILL.md` "Classification Taxonomy"): Customer Feedback / Roadmap Signal, User Interview, Support Ticket Cluster, Internal Product Decision Discussion, Product Brainstorm, Discovery Note, PRD Update, Stakeholder Update, Research Finding, Open Question, or Archive. Use Product-Team Input as the fallback when nothing matches.
 3. Extract facts from assumptions.
 4. Preserve direct quotes and source-linked evidence.
 5. Create a discovery note using the profile output contract.
