@@ -177,6 +177,33 @@ class AgentProfileTests(unittest.TestCase):
             self.assertNotIn("--profile product-teams", capture_result.stdout)
             self.assertIn("--profile acme-product-memory", weekly_result.stdout)
 
+    def test_install_rejects_profile_names_that_are_not_safe_slugs(self) -> None:
+        script = ROOT / "scripts" / "install_profile.py"
+        unsafe_names = ["../escape-profile", "bad/name", 'bad"name', "", "-starts-with-dash"]
+        for unsafe_name in unsafe_names:
+            with self.subTest(profile_name=unsafe_name):
+                with tempfile.TemporaryDirectory() as tmpdir:
+                    hermes_home = Path(tmpdir) / "hermes-home"
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(script),
+                            "--hermes-home",
+                            str(hermes_home),
+                            "--workspace",
+                            str(ROOT / "examples" / "workspace"),
+                            f"--profile-name={unsafe_name}",
+                        ],
+                        cwd=ROOT,
+                        text=True,
+                        capture_output=True,
+                    )
+
+                    self.assertNotEqual(0, result.returncode)
+                    self.assertIn("safe Hermes profile slug", result.stderr)
+                    self.assertFalse((hermes_home / "escape-profile").exists())
+                    self.assertFalse((Path(tmpdir) / "escape-profile").exists())
+
     def test_capture_command_builder_outputs_real_hermes_command(self) -> None:
         result = subprocess.run(
             [

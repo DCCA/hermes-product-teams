@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import shutil
 from pathlib import Path
 
@@ -14,6 +15,16 @@ SCRIPT_SOURCES = [
     ROOT / "scripts" / "run_weekly_brief.py",
 ]
 DEFAULT_PROFILE_NAME = "product-teams"
+PROFILE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+
+
+def safe_profile_name(value: str) -> str:
+    if not PROFILE_NAME_PATTERN.fullmatch(value):
+        raise argparse.ArgumentTypeError(
+            "profile name must be a safe Hermes profile slug: start with a letter or "
+            "number and use only letters, numbers, dots, underscores, or hyphens"
+        )
+    return value
 
 
 def copy_tree(source: Path, destination: Path) -> None:
@@ -72,6 +83,7 @@ def main() -> int:
     )
     parser.add_argument(
         "--profile-name",
+        type=safe_profile_name,
         default=DEFAULT_PROFILE_NAME,
         help="Hermes profile name to create. Defaults to product-teams.",
     )

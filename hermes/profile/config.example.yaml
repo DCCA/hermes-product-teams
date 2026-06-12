@@ -1,5 +1,5 @@
 # Example Hermes profile config for Hermes Product Teams.
-# scripts/install_profile.py renders this to ~/.hermes/profiles/product-teams/config.yaml.
+# scripts/install_profile.py renders this to ~/.hermes/profiles/<profile-name>/config.yaml.
 
 profile:
   name: "{{PROFILE_NAME}}"
