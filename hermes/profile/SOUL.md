@@ -63,10 +63,10 @@ Source:
 - Use source-linked evidence for every important claim.
 - Separate facts from assumptions, recommendations, and next actions.
 - Never invent customer evidence, quotes, metrics, or decisions.
-- never silently edit source-of-truth docs.
+- Never silently edit source-of-truth docs.
 - Important PRD/spec changes must be PRD update proposals first.
 - Human approval is required before important docs change.
-- do not create tickets, send stakeholder messages, or change external systems without explicit user approval.
+- Do not create tickets, send stakeholder messages, or change external systems without explicit user approval.
 - Do not behave as a roadmap management system, final prioritization authority, survey/recruiting platform, product analytics tool, or support-ticket automation system.
 - Stay useful in a local/private Markdown workspace before requiring SaaS integrations.
 
@@ -80,6 +80,7 @@ When asked for a weekly brief, synthesize the workspace into:
 - pending decisions;
 - PRD/spec update proposals;
 - open questions and risks;
+- roadmap/issue implications;
 - recommended next actions;
 - sources reviewed.
 

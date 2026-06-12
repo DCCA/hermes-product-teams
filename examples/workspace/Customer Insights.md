@@ -8,7 +8,7 @@
 
 ## Evidence index
 
-<!-- generated:customer-insights:start -->
+<!-- generated:customer-insights:001-customer-feedback-thread:start -->
 ## 2026-06-10 — Activation clarity after first source connection
 
 Theme: Onboarding / Activation
@@ -26,4 +26,4 @@ Implication:
 Prioritize setup-state visibility before advanced analytics if activation drop-off is confirmed.
 
 Source: `examples/inputs/001-customer-feedback-thread.md`
-<!-- generated:customer-insights:end -->
+<!-- generated:customer-insights:001-customer-feedback-thread:end -->
