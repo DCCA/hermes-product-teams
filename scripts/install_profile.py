@@ -21,10 +21,20 @@ def copy_tree(source: Path, destination: Path) -> None:
     shutil.copytree(source, destination, dirs_exist_ok=True)
 
 
-def render_config(profile_root: Path, workspace: Path) -> None:
+def render_config(profile_root: Path, workspace: Path, profile_name: str) -> None:
     template = (PROFILE_SOURCE / "config.example.yaml").read_text(encoding="utf-8")
     rendered = template.replace("{{WORKSPACE_PATH}}", str(workspace.resolve()))
+    rendered = rendered.replace("{{PROFILE_NAME}}", profile_name)
     (profile_root / "config.yaml").write_text(rendered, encoding="utf-8")
+
+
+def copy_runtime_script(script_path: Path, scripts_root: Path, profile_name: str) -> None:
+    content = script_path.read_text(encoding="utf-8")
+    content = content.replace(
+        'DEFAULT_PROFILE = "product-teams"', f"DEFAULT_PROFILE = {profile_name!r}"
+    )
+    destination = scripts_root / script_path.name
+    destination.write_text(content, encoding="utf-8")
 
 
 def install_profile(hermes_home: Path, workspace: Path, profile_name: str) -> Path:
@@ -40,9 +50,9 @@ def install_profile(hermes_home: Path, workspace: Path, profile_name: str) -> Pa
     scripts_root = profile_root / "scripts"
     scripts_root.mkdir(parents=True, exist_ok=True)
     for script_path in SCRIPT_SOURCES:
-        shutil.copy2(script_path, scripts_root / script_path.name)
+        copy_runtime_script(script_path, scripts_root, profile_name)
 
-    render_config(profile_root, workspace)
+    render_config(profile_root, workspace, profile_name)
     return profile_root
 
 

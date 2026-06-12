@@ -2,7 +2,7 @@
 # scripts/install_profile.py renders this to ~/.hermes/profiles/product-teams/config.yaml.
 
 profile:
-  name: product-teams
+  name: "{{PROFILE_NAME}}"
   description: Hermes Product Teams Discovery + Living Docs Agent
 
 workspace:

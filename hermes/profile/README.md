@@ -23,6 +23,8 @@ From the repository root:
 python3 scripts/install_profile.py --workspace examples/workspace
 ```
 
+To install under a different Hermes profile name, pass `--profile-name <name>`; the installer renders that name into both `config.yaml` and the packaged runtime scripts so dry-runs and real captures invoke the matching profile.
+
 This creates:
 
 ```text
