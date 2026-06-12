@@ -35,9 +35,11 @@ REQUIRED_FILES = [
     "scripts/run_agent_capture.py",
     "scripts/run_weekly_brief.py",
     "scripts/run_capture_demo.py",
+    "scripts/report_prd_touchpoints.py",
     "tests/__init__.py",
     "tests/test_agent_profile.py",
     "tests/test_prd_direction.py",
+    "tests/test_prd_touchpoints.py",
     "tests/test_use_case_validation.py",
 ]
 

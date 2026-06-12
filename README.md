@@ -155,4 +155,14 @@ The deterministic demo transforms `examples/inputs/001-customer-feedback-thread.
 - a PRD update proposal;
 - a weekly product brief.
 
+### PRD touchpoint report
+
+To see which PRD sections each generated discovery note touches — and which notes have no PRD touchpoint at all (an early staleness/coverage signal) — run:
+
+```bash
+python3 scripts/report_prd_touchpoints.py
+```
+
+The report lists, per discovery note, the PRD sections sharing salient terms (with the shared terms shown so a PM can judge relevance), prints `No PRD touchpoint found` for uncovered notes, and ends with a coverage summary. Use `--min-overlap` to tune sensitivity and `--output <path>` to also write the report to a file.
+
 For manual validation, use `docs/user-test-guide.md` to run a 5–10 minute user test of the customer feedback demo before expanding to additional use cases.
