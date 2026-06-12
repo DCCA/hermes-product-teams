@@ -16,8 +16,8 @@ Every validated use case should:
 - create or update product-memory artifacts;
 - produce PRD update proposals when requirements/spec changes are implied;
 - not silently edit PRD.md;
-- avoid drifting into not roadmap management;
-- avoid drifting into not user research operations;
+- stay within the memory/discovery/docs wedge — not roadmap management;
+- stay within product-memory synthesis — not user research operations;
 - remain useful in a local/private Markdown workspace.
 
 ## Validation status summary
@@ -189,7 +189,7 @@ Acceptance criteria:
 
 Current status: Partially validated with a deterministic multi-input synthesis demo covered by `tests/test_prd_direction.py`.
 
-Next gap: Generalize the synthesis beyond the current fixtures, add true aggregated shared-artifact updates beyond the weekly brief, and validate quality under conflicting or noisier weekly inputs.
+Next gap: Generalize the synthesis beyond the current fixtures and validate quality under conflicting or noisier weekly inputs. Aggregated shared-artifact updates now accumulate per capture in `Customer Insights.md`, `Decision Log.md`, `Open Questions.md`, and `PRD Update Proposals.md`.
 
 ## Validation commands
 
