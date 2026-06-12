@@ -22,34 +22,38 @@ def load_capture_module():
 CAPTURE = load_capture_module()
 
 
+def classify_path(path: Path) -> str:
+    return CAPTURE.classify_input(path.name, path.read_text(encoding="utf-8"))
+
+
 class InputClassificationTests(unittest.TestCase):
     def test_customer_feedback_fixture_is_classified_canonically(self) -> None:
         self.assertEqual(
-            CAPTURE.classify_input(INPUTS / "001-customer-feedback-thread.md"),
+            classify_path(INPUTS / "001-customer-feedback-thread.md"),
             "Customer Feedback / Roadmap Signal",
         )
 
     def test_user_interview_fixture_is_classified_canonically(self) -> None:
         self.assertEqual(
-            CAPTURE.classify_input(INPUTS / "002-user-interview-notes.md"),
+            classify_path(INPUTS / "002-user-interview-notes.md"),
             "User Interview",
         )
 
     def test_support_ticket_fixture_is_classified_canonically(self) -> None:
         self.assertEqual(
-            CAPTURE.classify_input(INPUTS / "003-support-ticket-cluster.md"),
+            classify_path(INPUTS / "003-support-ticket-cluster.md"),
             "Support Ticket Cluster",
         )
 
     def test_internal_decision_fixture_is_classified_canonically(self) -> None:
         self.assertEqual(
-            CAPTURE.classify_input(INPUTS / "004-internal-decision-discussion.md"),
+            classify_path(INPUTS / "004-internal-decision-discussion.md"),
             "Internal Product Decision Discussion",
         )
 
     def test_product_brainstorm_fixture_is_classified_canonically(self) -> None:
         self.assertEqual(
-            CAPTURE.classify_input(INPUTS / "005-product-brainstorm.md"),
+            classify_path(INPUTS / "005-product-brainstorm.md"),
             "Product Brainstorm",
         )
 
@@ -60,7 +64,7 @@ class InputClassificationTests(unittest.TestCase):
                 "# Random note\n\nWe talked about lunch options and office plants.\n",
                 encoding="utf-8",
             )
-            self.assertEqual(CAPTURE.classify_input(generic), "Product-Team Input")
+            self.assertEqual(classify_path(generic), "Product-Team Input")
 
 
 if __name__ == "__main__":
