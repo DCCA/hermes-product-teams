@@ -814,10 +814,7 @@ Source: `examples/inputs/{capture.slug}.md`
 
 def render_prd_proposal(capture: CaptureInput) -> str:
     if capture.kind == "user_interview":
-        return f"""# PRD Update Proposals
-
-<!-- generated:{capture.slug}:start -->
-## {capture.date} — Source-linked evidence and approval-path proposal
+        return f"""## {capture.date} — Source-linked evidence and approval-path proposal
 
 Status: Proposed, not applied to `PRD.md`.
 Source: `examples/inputs/{capture.slug}.md`
@@ -840,14 +837,10 @@ The product should preserve source-linked evidence and direct quotes in discover
 ### Non-goal
 
 Do not silently rewrite `PRD.md`; retain source-linked evidence and proposal-first behavior.
-<!-- generated:{capture.slug}:end -->
 """
 
     if capture.kind == "support_ticket_cluster":
-        return f"""# PRD Update Proposals
-
-<!-- generated:{capture.slug}:start -->
-## {capture.date} — Export reliability and recovery-guidance proposal
+        return f"""## {capture.date} — Export reliability and recovery-guidance proposal
 
 Status: Proposed, not applied to `PRD.md`.
 Source: `examples/inputs/{capture.slug}.md`
@@ -870,14 +863,10 @@ The product should expose export-job state, failure status, and retry guidance f
 ### Non-goal
 
 Do not create support tickets or automate support operations; keep this as product-memory synthesis and proposal-only PRD updates.
-<!-- generated:{capture.slug}:end -->
 """
 
     if capture.kind == "internal_decision_discussion":
-        return f"""# PRD Update Proposals
-
-<!-- generated:{capture.slug}:start -->
-## {capture.date} — Proposal-review gate for discovery-driven requirement changes
+        return f"""## {capture.date} — Proposal-review gate for discovery-driven requirement changes
 
 Status: Proposed, not applied to `PRD.md`.
 Source: `examples/inputs/{capture.slug}.md`
@@ -897,14 +886,10 @@ Important discovery-driven requirement changes should go through a visible PRD p
 ### Non-goal
 
 Do not silently rewrite `PRD.md` or let implementation proceed against AI-generated requirement changes without visible review.
-<!-- generated:{capture.slug}:end -->
 """
 
     if capture.kind == "product_brainstorm":
-        return f"""# PRD Update Proposals
-
-<!-- generated:{capture.slug}:start -->
-## {capture.date} — No PRD proposal generated yet
+        return f"""## {capture.date} — No PRD proposal generated yet
 
 Source: `examples/inputs/{capture.slug}.md`
 Evidence threshold: not yet met for a concrete requirement proposal.
@@ -924,13 +909,9 @@ Evidence threshold: not yet met for a concrete requirement proposal.
 ### Current guardrail
 
 Do not turn brainstorm ideas into validated requirements or rewrite `PRD.md` before the evidence threshold is met.
-<!-- generated:{capture.slug}:end -->
 """
 
-    return f"""# PRD Update Proposals
-
-<!-- generated:{capture.slug}:start -->
-## {capture.date} — Activation/status panel proposal
+    return f"""## {capture.date} — Activation/status panel proposal
 
 Status: Proposed, not applied to `PRD.md`.
 Source: `examples/inputs/{capture.slug}.md`
@@ -957,7 +938,6 @@ The product should show an activation status panel after first data-source conne
 ### Non-goal
 
 Do not build advanced analytics before users reliably complete setup, unless activation data disproves this bottleneck.
-<!-- generated:{capture.slug}:end -->
 """
 
 
@@ -1203,27 +1183,26 @@ The strongest signal this week is an activation clarity issue: users can connect
 """
 
 
-def run(input_path: Path, workspace: Path) -> list[Path]:
-    capture = read_capture(input_path)
-    written: list[Path] = []
-
-    discovery_path = workspace / "Discovery Notes" / f"{capture.slug}.generated.md"
-    discovery_path.parent.mkdir(parents=True, exist_ok=True)
-    discovery_path.write_text(render_discovery_note(capture), encoding="utf-8")
-    written.append(discovery_path)
+def capture_into_workspace(capture: CaptureInput, workspace: Path) -> list[Path]:
+    """Write one capture's artifacts, accumulating per-capture blocks in shared files."""
+    written = [write_discovery_note(capture, workspace)]
 
     targets = [
         (workspace / "Customer Insights.md", "customer-insights", render_customer_insights(capture)),
         (workspace / "Decision Log.md", "decision-log", render_decision_log(capture)),
         (workspace / "Open Questions.md", "open-questions", render_open_questions(capture)),
+        (workspace / "PRD Update Proposals.md", "prd-proposals", render_prd_proposal(capture)),
     ]
     for path, marker, content in targets:
-        replace_generated_block(path, marker, content)
+        replace_generated_block(path, f"{marker}:{capture.slug}", content)
         written.append(path)
 
-    prd_proposals = workspace / "PRD Update Proposals.md"
-    prd_proposals.write_text(render_prd_proposal(capture), encoding="utf-8")
-    written.append(prd_proposals)
+    return written
+
+
+def run(input_path: Path, workspace: Path) -> list[Path]:
+    capture = read_capture(input_path)
+    written = capture_into_workspace(capture, workspace)
 
     weekly_path = workspace / "Weekly Briefs" / f"weekly-brief-{capture.date}.generated.md"
     weekly_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1435,8 +1414,7 @@ def run_many(input_paths: list[Path], workspace: Path) -> list[Path]:
     for input_path in input_paths:
         capture = read_capture(input_path)
         captures.append(capture)
-        discovery_path = write_discovery_note(capture, workspace)
-        written.append(discovery_path)
+        written.extend(capture_into_workspace(capture, workspace))
 
     weekly_demo_path = workspace / "Weekly Briefs" / "weekly-brief-demo.generated.md"
     weekly_demo_path.parent.mkdir(parents=True, exist_ok=True)

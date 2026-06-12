@@ -1,6 +1,6 @@
 # PRD Update Proposals
 
-<!-- generated:001-customer-feedback-thread:start -->
+<!-- generated:prd-proposals:001-customer-feedback-thread:start -->
 ## 2026-06-10 — Activation/status panel proposal
 
 Status: Proposed, not applied to `PRD.md`.
@@ -28,4 +28,4 @@ The product should show an activation status panel after first data-source conne
 ### Non-goal
 
 Do not build advanced analytics before users reliably complete setup, unless activation data disproves this bottleneck.
-<!-- generated:001-customer-feedback-thread:end -->
+<!-- generated:prd-proposals:001-customer-feedback-thread:end -->
