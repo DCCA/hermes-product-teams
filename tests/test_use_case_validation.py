@@ -187,6 +187,26 @@ class UseCaseValidationTests(unittest.TestCase):
             content,
         )
 
+    def test_weekly_synthesis_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| Weekly synthesis from multiple inputs | Partially validated with one deterministic multi-input demo. |",
+            content,
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/001-customer-feedback-thread.md`, `examples/inputs/002-user-interview-notes.md`, `examples/inputs/003-support-ticket-cluster.md`, `examples/inputs/004-internal-decision-discussion.md`, `examples/inputs/005-product-brainstorm.md`",
+            content,
+        )
+        self.assertIn(
+            "Current status: Partially validated with a deterministic multi-input synthesis demo covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn(
+            "Next gap: Generalize the synthesis beyond the current five fixtures and validate quality under conflicting or noisier weekly inputs.",
+            content,
+        )
+
     def test_user_test_guide_exists_with_bounded_script_and_trust_checks(self) -> None:
         guide = (ROOT / "docs/user-test-guide.md").read_text(encoding="utf-8")
 

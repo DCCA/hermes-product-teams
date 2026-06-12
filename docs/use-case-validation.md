@@ -29,7 +29,7 @@ Every validated use case should:
 | Support ticket cluster | Partially validated with one fixture. |
 | Internal product decision discussion | Partially validated with one fixture. |
 | Product brainstorm | Partially validated with one fixture. |
-| Weekly synthesis from multiple inputs | Not yet validated. |
+| Weekly synthesis from multiple inputs | Partially validated with one deterministic multi-input demo. |
 
 ## Customer feedback thread
 
@@ -169,7 +169,7 @@ Target user: PM, founder, or product ops lead preparing a weekly product update.
 
 User job: Combine multiple product inputs into a concise weekly brief with discovery signals, decisions, pending decisions, PRD proposals, open questions, risks, and next actions.
 
-Input fixture: Missing — proposed approach: run the capture workflow across all sample inputs and generate `examples/workspace/Weekly Briefs/weekly-brief-demo.generated.md`.
+Input fixture: `examples/inputs/001-customer-feedback-thread.md`, `examples/inputs/002-user-interview-notes.md`, `examples/inputs/003-support-ticket-cluster.md`, `examples/inputs/004-internal-decision-discussion.md`, `examples/inputs/005-product-brainstorm.md`
 
 Expected artifacts:
 - weekly product brief;
@@ -186,9 +186,9 @@ Acceptance criteria:
 - The brief is concise enough for a PM/product trio to read quickly.
 - The workflow does not become a generic status-reporting or project-management system.
 
-Current status: Not yet validated.
+Current status: Partially validated with a deterministic multi-input synthesis demo covered by `tests/test_prd_direction.py`.
 
-Next gap: Generalize the script to process multiple inputs and synthesize a combined weekly brief.
+Next gap: Generalize the synthesis beyond the current five fixtures and validate quality under conflicting or noisier weekly inputs.
 
 ## Validation commands
 

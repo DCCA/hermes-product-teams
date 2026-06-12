@@ -226,6 +226,53 @@ class PrdDirectionTests(unittest.TestCase):
             self.assertIn("## Potential product implications", brief)
             self.assertNotIn("## PRD/spec changes proposed", brief)
             self.assertIn("ideas are still hypotheses", brief.lower())
+    def test_multi_input_weekly_synthesis_generates_combined_brief(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--workspace",
+                    str(workspace),
+                    "--inputs",
+                    "examples/inputs/001-customer-feedback-thread.md",
+                    "examples/inputs/002-user-interview-notes.md",
+                    "examples/inputs/003-support-ticket-cluster.md",
+                    "examples/inputs/004-internal-decision-discussion.md",
+                    "examples/inputs/005-product-brainstorm.md",
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-demo.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("# Weekly Product Brief — Multi-input Demo", brief)
+            self.assertIn("## Executive summary", brief)
+            self.assertIn("source-linked evidence", brief)
+            self.assertIn("## Discovery signals", brief)
+            self.assertIn("Sources: 001, 002, 003, 004, 005", brief)
+            self.assertIn("weekly AI summary", brief)
+            self.assertIn("source links are visible", brief)
+            self.assertIn("export reliability", brief)
+            self.assertIn("proposal review before implementation", brief)
+            self.assertIn("customer recap", brief)
+            self.assertIn("## Decisions made", brief)
+            self.assertIn("Sources: 004", brief)
+            self.assertIn("## Decisions pending", brief)
+            self.assertIn("Sources: 001, 002, 003, 004, 005", brief)
+            self.assertIn("## PRD/spec update proposals", brief)
+            self.assertIn("Sources: 001, 002, 003, 004", brief)
+            self.assertIn("## Open questions and risks", brief)
+            self.assertIn("Sources: 002, 003, 005", brief)
+            self.assertIn("## Sources reviewed", brief)
+            self.assertIn("001-customer-feedback-thread.md", brief)
+            self.assertIn("005-product-brainstorm.md", brief)
 
 
 if __name__ == "__main__":

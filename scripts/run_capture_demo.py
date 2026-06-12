@@ -1233,13 +1233,107 @@ def run(input_path: Path, workspace: Path) -> list[Path]:
     return written
 
 
+def render_multi_input_weekly_brief(captures: list[CaptureInput]) -> str:
+    customer_feedback = next((capture for capture in captures if capture.kind == "customer_feedback"), None)
+    interview = next((capture for capture in captures if capture.kind == "user_interview"), None)
+    support = next((capture for capture in captures if capture.kind == "support_ticket_cluster"), None)
+    decision = next((capture for capture in captures if capture.kind == "internal_decision_discussion"), None)
+    brainstorm = next((capture for capture in captures if capture.kind == "product_brainstorm"), None)
+    source_lines = "\n".join(f"- `examples/inputs/{capture.slug}.md`" for capture in captures)
+
+    return f"""# Weekly Product Brief — Multi-input Demo
+
+## Executive summary
+
+This synthesis combines five product inputs into one weekly view. The strongest cross-cutting signal is that product teams want source-linked evidence, clearer trust boundaries for requirement changes, and tighter weekly communication before more automation is added.
+
+## Discovery signals
+
+Sources: 001, 002, 003, 004, 005
+
+- Customers still want a weekly AI summary, but only if it stays grounded in source-linked evidence and next actions.
+- Interview feedback says trust increases when source links are visible and PRD implications remain proposals.
+- Support signals show export reliability is a concrete trust issue for recurring weekly workflows.
+- Internal decision discussion reinforces the need for proposal review before implementation starts.
+- The brainstorm suggests a structured customer recap could be a promising wedge, but the idea is still below the evidence threshold.
+
+## Decisions made
+
+Sources: 004
+
+- No final product decisions were made this week.
+- One important team-level conclusion did emerge: discovery-driven requirement changes should flow through proposal review before implementation whenever evidence is still evolving.
+
+## Decisions pending
+
+Sources: 001, 002, 003, 004, 005
+
+- Whether activation/status clarity or export reliability should be prioritized first for the next product change.
+- Which source should be validated first as the highest-value product-memory input path.
+- Whether a structured customer recap should be the first brainstorm theme to prototype.
+- Who should approve proposed PRD/spec edits before source-of-truth docs change.
+
+## PRD/spec update proposals
+
+Sources: 001, 002, 003, 004
+
+- Preserve source-linked evidence and direct quotes across discovery outputs.
+- Keep PRD/spec changes proposal-first with human approval.
+- Add clearer workflow support for recurring weekly summaries and pending proposal review.
+- Investigate export reliability and activation clarity before expanding into broader workflow automation.
+- Treat recap-style outputs as possible product implications, not validated requirements, until stronger evidence exists.
+
+## Open questions and risks
+
+Sources: 002, 003, 005
+
+- Can the system keep source-linked evidence concise enough for weekly review without becoming noisy?
+- Are the current support and interview samples representative enough to justify requirement-level changes?
+- How should conflicting weekly inputs be resolved when customer demand and internal sequencing disagree?
+- Brainstorm ideas remain hypotheses, and support severity is still based on a limited cluster.
+
+## Recommended next actions
+
+Sources: 001, 002, 003, 004, 005
+
+1. Validate which input source delivers the most reusable product signal each week.
+2. Define the approval path and evidence threshold for PRD/spec proposals.
+3. Measure whether activation clarity or export reliability is causing more immediate weekly pain.
+4. Test whether a structured customer recap actually saves founder/PM review time.
+
+## Sources reviewed
+
+{source_lines}
+"""
+
+
+def run_many(input_paths: list[Path], workspace: Path) -> list[Path]:
+    written: list[Path] = []
+    captures: list[CaptureInput] = []
+    for input_path in input_paths:
+        captures.append(read_capture(input_path))
+        for path in run(input_path, workspace):
+            if path not in written:
+                written.append(path)
+
+    weekly_demo_path = workspace / "Weekly Briefs" / "weekly-brief-demo.generated.md"
+    weekly_demo_path.parent.mkdir(parents=True, exist_ok=True)
+    weekly_demo_path.write_text(render_multi_input_weekly_brief(captures), encoding="utf-8")
+    written.append(weekly_demo_path)
+    return written
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run deterministic Hermes Product Teams capture demo.")
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
+    parser.add_argument("--inputs", type=Path, nargs="+")
     parser.add_argument("--workspace", type=Path, default=DEFAULT_WORKSPACE)
     args = parser.parse_args()
 
-    written = run(args.input, args.workspace)
+    if args.inputs:
+        written = run_many(args.inputs, args.workspace)
+    else:
+        written = run(args.input, args.workspace)
     for path in written:
         print(path)
     return 0
