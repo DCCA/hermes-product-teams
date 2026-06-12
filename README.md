@@ -33,7 +33,10 @@ Given rough inputs such as meeting notes, customer feedback, Slack-style threads
 ├── docs/
 │   ├── concept.md
 │   ├── market-validation.md
-│   └── mvp-plan.md
+│   ├── mvp-plan.md
+│   ├── prd-direction.md
+│   ├── use-case-validation.md
+│   └── user-test-guide.md
 ├── examples/
 │   ├── inputs/
 │   └── workspace/
@@ -41,7 +44,8 @@ Given rough inputs such as meeting notes, customer feedback, Slack-style threads
 │   ├── profile/
 │   ├── prompts/
 │   └── skills/product-team-memory/
-└── scripts/
+├── scripts/
+└── tests/
 ```
 
 ## MVP artifacts

@@ -11,6 +11,7 @@ REQUIRED_FILES = [
     "docs/mvp-plan.md",
     "docs/prd-direction.md",
     "docs/use-case-validation.md",
+    "docs/user-test-guide.md",
     "hermes/skills/product-team-memory/SKILL.md",
     "hermes/prompts/capture.md",
     "hermes/prompts/weekly-brief.md",
