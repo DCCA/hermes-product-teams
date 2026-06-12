@@ -41,7 +41,17 @@ def resolve_default_workspace() -> Path:
     return ROOT / "examples" / "workspace"
 
 
+def _marker_hits(content: str, markers: list[str]) -> int:
+    return sum(1 for marker in markers if marker in content)
+
+
 def classify_input(input_path: Path) -> str:
+    """Classify an input file using the canonical taxonomy from SKILL.md.
+
+    The class names returned here match the "Classification Taxonomy" in
+    `hermes/skills/product-team-memory/SKILL.md` and the `Type:` lines rendered
+    by `scripts/run_capture_demo.py`.
+    """
     lowered_name = input_path.name.lower()
     try:
         content = input_path.read_text(encoding="utf-8").lower()
@@ -51,15 +61,51 @@ def classify_input(input_path: Path) -> str:
     interview_markers = [
         "interviewee:",
         "interviewer:",
-        "role:",
-        "segment:",
         "direct quotes",
-        "follow-up questions",
         "assumptions to validate",
+        "follow-up questions",
     ]
-    marker_hits = sum(1 for marker in interview_markers if marker in content)
-    if "interview" in lowered_name or marker_hits >= 3:
+    if "interview" in lowered_name or _marker_hits(content, interview_markers) >= 3:
         return "User Interview"
+
+    support_markers = [
+        "ticket summaries",
+        "repeated issue pattern",
+        "support impact",
+        "severity:",
+        "confidence:",
+    ]
+    if "support-ticket" in lowered_name or _marker_hits(content, support_markers) >= 4:
+        return "Support Ticket Cluster"
+
+    decision_markers = [
+        "decision status:",
+        "options considered",
+        "reversibility",
+        "requirement implications",
+        "participants:",
+    ]
+    if "decision-discussion" in lowered_name or _marker_hits(content, decision_markers) >= 4:
+        return "Internal Product Decision Discussion"
+
+    brainstorm_markers = [
+        "raw idea cluster",
+        "assumptions",
+        "hypotheses",
+        "non-goals",
+        "participants:",
+    ]
+    if "product-brainstorm" in lowered_name or _marker_hits(content, brainstorm_markers) >= 4:
+        return "Product Brainstorm"
+
+    feedback_markers = [
+        "pm note:",
+        "potential decision needed:",
+        "customer feedback",
+    ]
+    if "customer-feedback" in lowered_name or _marker_hits(content, feedback_markers) >= 2:
+        return "Customer Feedback / Roadmap Signal"
+
     return "Product-Team Input"
 
 
