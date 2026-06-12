@@ -79,8 +79,133 @@ class UseCaseValidationTests(unittest.TestCase):
         self.assertIn(
             "Input fixture: `examples/inputs/002-user-interview-notes.md`", content
         )
-        self.assertIn("Current status: Partially validated with a realistic input fixture.", content)
-        self.assertIn("Next gap: Add interview-specific extraction tests", content)
+        self.assertIn(
+            "Current status: Partially validated with a realistic input fixture plus deterministic interview artifact generation covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn("Next gap: Add broader acceptance checks for decision-log and weekly-brief quality", content)
+
+    def test_support_ticket_fixture_exists_with_support_specific_content(self) -> None:
+        fixture = (ROOT / "examples/inputs/003-support-ticket-cluster.md").read_text(
+            encoding="utf-8"
+        )
+
+        required_phrases = [
+            "# Support Ticket Cluster",
+            "Affected segment:",
+            "Severity:",
+            "Confidence:",
+            "Ticket summaries",
+            "Repeated issue pattern",
+            "Support impact",
+            "Product follow-ups",
+        ]
+        for phrase in required_phrases:
+            self.assertIn(phrase, fixture)
+
+    def test_support_ticket_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| Support ticket cluster | Partially validated with one fixture. |", content
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/003-support-ticket-cluster.md`", content
+        )
+        self.assertIn(
+            "Current status: Partially validated with a realistic support-cluster fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn("Next gap: Add broader acceptance checks for decision/triage quality", content)
+
+    def test_internal_decision_fixture_exists_with_decision_specific_content(self) -> None:
+        fixture = (ROOT / "examples/inputs/004-internal-decision-discussion.md").read_text(
+            encoding="utf-8"
+        )
+
+        required_phrases = [
+            "# Internal Product Decision Discussion",
+            "Decision status:",
+            "Participants:",
+            "Options considered",
+            "Rationale",
+            "Risks",
+            "Reversibility",
+            "Requirement implications",
+        ]
+        for phrase in required_phrases:
+            self.assertIn(phrase, fixture)
+
+    def test_internal_decision_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| Internal product decision discussion | Partially validated with one fixture. |", content
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/004-internal-decision-discussion.md`", content
+        )
+        self.assertIn(
+            "Current status: Partially validated with a realistic internal-decision fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn("Next gap: Add broader acceptance checks for decision quality", content)
+
+    def test_product_brainstorm_fixture_exists_with_brainstorm_specific_content(self) -> None:
+        fixture = (ROOT / "examples/inputs/005-product-brainstorm.md").read_text(
+            encoding="utf-8"
+        )
+
+        required_phrases = [
+            "# Product Brainstorm",
+            "Participants:",
+            "Raw idea cluster",
+            "Assumptions",
+            "Hypotheses",
+            "Non-goals",
+            "Risks",
+            "Next actions",
+        ]
+        for phrase in required_phrases:
+            self.assertIn(phrase, fixture)
+
+    def test_product_brainstorm_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| Product brainstorm | Partially validated with one fixture. |", content
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/005-product-brainstorm.md`", content
+        )
+        self.assertIn(
+            "Current status: Partially validated with a realistic brainstorm fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn(
+            "Next gap: Add broader acceptance checks for idea-quality and evidence thresholds",
+            content,
+        )
+
+    def test_weekly_synthesis_use_case_is_marked_partially_validated(self) -> None:
+        content = USE_CASE_DOC.read_text(encoding="utf-8")
+
+        self.assertIn(
+            "| Weekly synthesis from multiple inputs | Partially validated with one deterministic multi-input demo. |",
+            content,
+        )
+        self.assertIn(
+            "Input fixture: `examples/inputs/001-customer-feedback-thread.md`, `examples/inputs/002-user-interview-notes.md`, `examples/inputs/003-support-ticket-cluster.md`, `examples/inputs/004-internal-decision-discussion.md`, `examples/inputs/005-product-brainstorm.md`",
+            content,
+        )
+        self.assertIn(
+            "Current status: Partially validated with a deterministic multi-input synthesis demo covered by `tests/test_prd_direction.py`.",
+            content,
+        )
+        self.assertIn(
+            "Next gap: Generalize the synthesis beyond the current fixtures, add true aggregated shared-artifact updates beyond the weekly brief, and validate quality under conflicting or noisier weekly inputs.",
+            content,
+        )
 
     def test_user_test_guide_exists_with_bounded_script_and_trust_checks(self) -> None:
         guide = (ROOT / "docs/user-test-guide.md").read_text(encoding="utf-8")

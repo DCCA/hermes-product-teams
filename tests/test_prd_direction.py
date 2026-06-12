@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
@@ -61,6 +62,224 @@ class PrdDirectionTests(unittest.TestCase):
         self.assertIn("Sources reviewed", brief)
         self.assertIn("## Evidence", discovery)
         self.assertIn("## Assumptions", discovery)
+
+    def test_interview_capture_demo_generates_interview_specific_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/002-user-interview-notes.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "002-user-interview-notes.generated.md").read_text(
+                encoding="utf-8"
+            )
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-10.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: User Interview", discovery)
+            self.assertIn("Interviewee role: Head of Customer Success", discovery)
+            self.assertIn("Segment: Mid-market customer-facing team lead", discovery)
+            self.assertIn("## Goals", discovery)
+            self.assertIn("## Assumptions to validate", discovery)
+            self.assertIn("## Follow-up questions", discovery)
+            self.assertIn("source-linked evidence", proposal)
+            self.assertIn("PMs trust AI-generated discovery notes when direct quotes and source links are visible.", insights)
+            self.assertIn("Who should approve proposed PRD/spec edits?", questions)
+            self.assertIn("proposed PRD/spec edits with sources should be the default trust model", decision_log)
+            self.assertIn("Which input source should be validated first", brief)
+
+    def test_support_ticket_capture_demo_generates_severity_and_confidence_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/003-support-ticket-cluster.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "003-support-ticket-cluster.generated.md").read_text(
+                encoding="utf-8"
+            )
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-11.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: Support Ticket Cluster", discovery)
+            self.assertIn("Severity: High", discovery)
+            self.assertIn("Confidence: Medium", discovery)
+            self.assertIn("## Repeated issue pattern", discovery)
+            self.assertIn("## Support impact", discovery)
+            self.assertIn("same export timeout issue", insights)
+            self.assertIn("triage export performance before adding more export formats", decision_log)
+            self.assertIn("What percentage of CSV exports time out", questions)
+            self.assertIn("Status: Proposed, not applied to `PRD.md`.", proposal)
+            self.assertIn("Severity/confidence", brief)
+
+    def test_internal_decision_capture_demo_generates_decision_specific_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/004-internal-decision-discussion.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "004-internal-decision-discussion.generated.md").read_text(
+                encoding="utf-8"
+            )
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-12.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: Internal Product Decision Discussion", discovery)
+            self.assertIn("Decision status: Proposed", discovery)
+            self.assertIn("## Options considered", discovery)
+            self.assertIn("## Risks", discovery)
+            self.assertIn("## Reversibility", discovery)
+            self.assertIn("Decision: Proposed — standardize on PRD proposal review before implementation starts.", decision_log)
+            self.assertIn("What evidence threshold should trigger a PRD proposal", questions)
+            self.assertIn("Status: Proposed, not applied to `PRD.md`.", proposal)
+            self.assertIn("decisions pending", brief.lower())
+
+    def test_product_brainstorm_capture_demo_generates_assumption_and_non_goal_artifacts(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--input",
+                    "examples/inputs/005-product-brainstorm.md",
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            discovery = (workspace / "Discovery Notes" / "005-product-brainstorm.generated.md").read_text(
+                encoding="utf-8"
+            )
+            insights = (workspace / "Customer Insights.md").read_text(encoding="utf-8")
+            decision_log = (workspace / "Decision Log.md").read_text(encoding="utf-8")
+            questions = (workspace / "Open Questions.md").read_text(encoding="utf-8")
+            proposal = (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8")
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-2026-06-13.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("Type: Product Brainstorm", discovery)
+            self.assertIn("## Raw ideas", discovery)
+            self.assertIn("## Assumptions", discovery)
+            self.assertIn("## Hypotheses", discovery)
+            self.assertIn("## Non-goals", discovery)
+            self.assertIn("## Risks", discovery)
+            self.assertNotIn("## Facts", discovery)
+            self.assertIn("structured customer recap", insights)
+            self.assertIn("Decision: Pending — validate whether AI-generated customer recap should be the first brainstorm theme to prototype.", decision_log)
+            self.assertIn("What evidence would prove founders will reuse a generated customer recap each week?", questions)
+            self.assertIn("No PRD proposal generated yet", proposal)
+            self.assertIn("evidence threshold", proposal)
+            self.assertIn("## Potential product implications", brief)
+            self.assertNotIn("## PRD/spec changes proposed", brief)
+            self.assertIn("ideas are still hypotheses", brief.lower())
+    def test_multi_input_weekly_synthesis_generates_combined_brief(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            workspace = Path(tmpdir) / "workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    "scripts/run_capture_demo.py",
+                    "--workspace",
+                    str(workspace),
+                    "--inputs",
+                    "examples/inputs/001-customer-feedback-thread.md",
+                    "examples/inputs/002-user-interview-notes.md",
+                    "examples/inputs/003-support-ticket-cluster.md",
+                    "examples/inputs/004-internal-decision-discussion.md",
+                    "examples/inputs/005-product-brainstorm.md",
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            brief = (workspace / "Weekly Briefs" / "weekly-brief-demo.generated.md").read_text(
+                encoding="utf-8"
+            )
+
+            self.assertIn("# Weekly Product Brief — Multi-input Demo", brief)
+            self.assertIn("## Executive summary", brief)
+            self.assertIn("source-linked evidence", brief)
+            self.assertIn("## Discovery signals", brief)
+            self.assertIn("Sources: 001, 002, 003, 004, 005", brief)
+            self.assertIn("weekly AI summary", brief)
+            self.assertIn("source links are visible", brief)
+            self.assertIn("export reliability", brief)
+            self.assertIn("proposal review before implementation", brief)
+            self.assertIn("customer recap", brief)
+            self.assertIn("## Decisions made", brief)
+            self.assertIn("Sources: 004", brief)
+            self.assertIn("## Decisions pending", brief)
+            self.assertIn("Sources: 001, 002, 003, 004, 005", brief)
+            self.assertIn("## PRD/spec update proposals", brief)
+            self.assertIn("Sources: 001, 002, 003, 004", brief)
+            self.assertIn("## Open questions and risks", brief)
+            self.assertIn("Sources: 002, 003, 005", brief)
+            self.assertIn("## Sources reviewed", brief)
+            self.assertIn("001-customer-feedback-thread.md", brief)
+            self.assertIn("005-product-brainstorm.md", brief)
+
+            self.assertTrue((workspace / "Discovery Notes" / "001-customer-feedback-thread.generated.md").exists())
+            self.assertTrue((workspace / "Discovery Notes" / "005-product-brainstorm.generated.md").exists())
+            self.assertFalse((workspace / "Customer Insights.md").exists())
+            self.assertFalse((workspace / "Decision Log.md").exists())
+            self.assertFalse((workspace / "Open Questions.md").exists())
+            self.assertFalse((workspace / "PRD Update Proposals.md").exists())
 
 
 if __name__ == "__main__":

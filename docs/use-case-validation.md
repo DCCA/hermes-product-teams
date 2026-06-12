@@ -26,10 +26,10 @@ Every validated use case should:
 | --- | --- |
 | Customer feedback thread | Partially validated with one fixture. |
 | User interview notes | Partially validated with one fixture. |
-| Support ticket cluster | Not yet validated. |
-| Internal product decision discussion | Not yet validated. |
-| Product brainstorm | Not yet validated. |
-| Weekly synthesis from multiple inputs | Not yet validated. |
+| Support ticket cluster | Partially validated with one fixture. |
+| Internal product decision discussion | Partially validated with one fixture. |
+| Product brainstorm | Partially validated with one fixture. |
+| Weekly synthesis from multiple inputs | Partially validated with one deterministic multi-input demo. |
 
 ## Customer feedback thread
 
@@ -80,9 +80,9 @@ Acceptance criteria:
 - No survey/recruiting workflow is introduced because this is not user research operations.
 - PRD implications remain proposals.
 
-Current status: Partially validated with a realistic input fixture.
+Current status: Partially validated with a realistic input fixture plus deterministic interview artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add interview-specific extraction tests and teach the capture workflow to generate interview discovery artifacts from `examples/inputs/002-user-interview-notes.md`.
+Next gap: Add broader acceptance checks for decision-log and weekly-brief quality, or validate a second interview fixture with a different segment/contradiction pattern.
 
 ## Support ticket cluster
 
@@ -90,7 +90,7 @@ Target user: PM or support lead reviewing repeated support issues.
 
 User job: Identify recurring product pain, severity, affected segment, likely root cause, support impact, and product follow-ups from a cluster of tickets.
 
-Input fixture: Missing — proposed path `examples/inputs/003-support-ticket-cluster.md`
+Input fixture: `examples/inputs/003-support-ticket-cluster.md`
 
 Expected artifacts:
 - discovery note;
@@ -107,9 +107,9 @@ Acceptance criteria:
 - The workflow does not create tickets or change external systems.
 - The workflow remains product-memory synthesis, not support operations automation.
 
-Current status: Not yet validated.
+Current status: Partially validated with a realistic support-cluster fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add fixture and severity/confidence acceptance checks.
+Next gap: Add broader acceptance checks for decision/triage quality, or validate a second support cluster with a different severity/confidence pattern.
 
 ## Internal product decision discussion
 
@@ -117,7 +117,7 @@ Target user: Product/design/engineering trio deciding between product options.
 
 User job: Preserve the decision, context, options considered, rationale, risks, reversibility, and follow-ups.
 
-Input fixture: Missing — proposed path `examples/inputs/004-internal-decision-discussion.md`
+Input fixture: `examples/inputs/004-internal-decision-discussion.md`
 
 Expected artifacts:
 - decision log entry;
@@ -133,9 +133,9 @@ Acceptance criteria:
 - Reversibility is labeled.
 - The output does not silently rewrite the PRD.
 
-Current status: Not yet validated.
+Current status: Partially validated with a realistic internal-decision fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add fixture and decision-log-specific tests.
+Next gap: Add broader acceptance checks for decision quality, or validate a second decision discussion with a different status/reversibility pattern.
 
 ## Product brainstorm
 
@@ -143,7 +143,7 @@ Target user: Founder or PM exploring rough product ideas.
 
 User job: Separate ideas, assumptions, hypotheses, non-goals, risks, and next actions from a messy brainstorm.
 
-Input fixture: Missing — proposed path `examples/inputs/005-product-brainstorm.md`
+Input fixture: `examples/inputs/005-product-brainstorm.md`
 
 Expected artifacts:
 - discovery note;
@@ -157,11 +157,11 @@ Acceptance criteria:
 - Assumptions and hypotheses are labeled.
 - Non-goals are preserved when stated.
 - The workflow recommends validation steps instead of prematurely prioritizing roadmap items.
-- The output stays inside the Product Discovery Memory Agent direction.
+- The output stays inside the Discovery + Living Docs Agent direction.
 
-Current status: Not yet validated.
+Current status: Partially validated with a realistic brainstorm fixture plus deterministic artifact generation covered by `tests/test_prd_direction.py`.
 
-Next gap: Add fixture and assumption-vs-fact checks.
+Next gap: Add broader acceptance checks for idea-quality and evidence thresholds, or validate a second brainstorm with a different level of founder conviction.
 
 ## Weekly synthesis from multiple inputs
 
@@ -169,7 +169,7 @@ Target user: PM, founder, or product ops lead preparing a weekly product update.
 
 User job: Combine multiple product inputs into a concise weekly brief with discovery signals, decisions, pending decisions, PRD proposals, open questions, risks, and next actions.
 
-Input fixture: Missing — proposed approach: run the capture workflow across all sample inputs and generate `examples/workspace/Weekly Briefs/weekly-brief-demo.generated.md`.
+Input fixture: `examples/inputs/001-customer-feedback-thread.md`, `examples/inputs/002-user-interview-notes.md`, `examples/inputs/003-support-ticket-cluster.md`, `examples/inputs/004-internal-decision-discussion.md`, `examples/inputs/005-product-brainstorm.md`
 
 Expected artifacts:
 - weekly product brief;
@@ -177,7 +177,8 @@ Expected artifacts:
 - decision summary;
 - open question summary;
 - PRD/spec proposal summary;
-- recommended next actions.
+- recommended next actions;
+- per-input discovery notes that preserve source-linked evidence for the synthesized brief.
 
 Acceptance criteria:
 - Every major claim links back to source input(s).
@@ -186,9 +187,9 @@ Acceptance criteria:
 - The brief is concise enough for a PM/product trio to read quickly.
 - The workflow does not become a generic status-reporting or project-management system.
 
-Current status: Not yet validated.
+Current status: Partially validated with a deterministic multi-input synthesis demo covered by `tests/test_prd_direction.py`.
 
-Next gap: Generalize the script to process multiple inputs and synthesize a combined weekly brief.
+Next gap: Generalize the synthesis beyond the current fixtures, add true aggregated shared-artifact updates beyond the weekly brief, and validate quality under conflicting or noisier weekly inputs.
 
 ## Validation commands
 
