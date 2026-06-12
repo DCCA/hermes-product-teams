@@ -31,6 +31,7 @@ REQUIRED_FILES = [
     "examples/inputs/001-customer-feedback-thread.md",
     "examples/inputs/002-user-interview-notes.md",
     "scripts/check_scaffold.py",
+    "scripts/check_workspace.py",
     "scripts/install_profile.py",
     "scripts/run_agent_capture.py",
     "scripts/run_weekly_brief.py",
@@ -38,9 +39,12 @@ REQUIRED_FILES = [
     "scripts/report_prd_touchpoints.py",
     "tests/__init__.py",
     "tests/test_agent_profile.py",
+    "tests/test_input_classification.py",
     "tests/test_prd_direction.py",
     "tests/test_prd_touchpoints.py",
+    "tests/test_text_capture.py",
     "tests/test_use_case_validation.py",
+    "tests/test_workspace_checks.py",
 ]
 
 

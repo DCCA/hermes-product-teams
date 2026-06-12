@@ -111,6 +111,19 @@ python3 scripts/run_agent_capture.py \
   --dry-run
 ```
 
+You don't need to save messy inputs (Slack threads, ad-hoc PM notes) to a file first — capture pasted text directly, or pipe it via stdin:
+
+```bash
+python3 scripts/run_agent_capture.py \
+  --text "Slack thread: two customers say weekly CSV exports keep timing out" \
+  --workspace examples/workspace \
+  --dry-run
+
+pbpaste | python3 scripts/run_agent_capture.py --workspace examples/workspace --dry-run
+```
+
+`--input` and `--text` are mutually exclusive; stdin is only read when neither flag is given and input is piped (not a TTY). For pasted/stdin input the content is embedded in the prompt between `BEGIN/END PASTED INPUT` markers, and the agent is instructed to record the source as user-pasted text with today's date if the text doesn't name a source.
+
 Run it through Hermes:
 
 ```bash

@@ -64,6 +64,18 @@ python3 ~/.hermes/profiles/product-teams/scripts/run_agent_capture.py \
   --input /absolute/path/to/customer-feedback.md
 ```
 
+You can also capture pasted text without saving a file first, either with `--text` or by piping content via stdin (the two are alternatives to `--input`; supplying both `--input` and `--text` is an error):
+
+```bash
+python3 ~/.hermes/profiles/product-teams/scripts/run_agent_capture.py \
+  --text "Slack thread: two customers say weekly CSV exports keep timing out" \
+  --dry-run
+
+pbpaste | python3 ~/.hermes/profiles/product-teams/scripts/run_agent_capture.py --dry-run
+```
+
+Pasted/stdin content is embedded in the capture prompt between `BEGIN/END PASTED INPUT` markers, and the agent records the source as user-pasted text with today's date when the text doesn't name its own source.
+
 The script invokes `hermes chat --profile product-teams --skills product-team-memory ...` with a self-contained capture prompt and defaults to the workspace configured in `~/.hermes/profiles/product-teams/config.yaml`.
 
 If you are developing from the repo checkout instead of the installed profile, use:

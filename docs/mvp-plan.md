@@ -23,15 +23,19 @@ python3 scripts/check_scaffold.py
 
 ## Phase 2 — Repeatable CLI/script demo
 
-- Add a script that applies the workflow to a sample input folder.
-- Produce deterministic output files for demos.
-- Add basic checks for required sections and source references.
+Status: implemented.
+
+- Add a script that applies the workflow to a sample input folder. ✅ (`scripts/run_capture_demo.py --inputs ...`)
+- Produce deterministic output files for demos. ✅
+- Add basic checks for required sections and source references. ✅ (`scripts/check_scaffold.py`, `tests/`)
 
 ## Phase 3 — Hermes profile pack
 
-- Add example profile config guidance.
-- Add prompts for weekly brief, PRD delta proposal, and decision capture.
-- Add setup docs for using Telegram/Slack-style capture.
+Status: implemented except gateway setup docs.
+
+- Add example profile config guidance. ✅ (`hermes/profile/`, `scripts/install_profile.py`)
+- Add prompts for weekly brief, PRD delta proposal, and decision capture. ✅ (`hermes/profile/workflows/`)
+- Add setup docs for using Telegram/Slack-style capture. ⏳
 
 ## Phase 4 — Integrations exploration
 
