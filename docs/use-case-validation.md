@@ -177,7 +177,8 @@ Expected artifacts:
 - decision summary;
 - open question summary;
 - PRD/spec proposal summary;
-- recommended next actions.
+- recommended next actions;
+- per-input discovery notes that preserve source-linked evidence for the synthesized brief.
 
 Acceptance criteria:
 - Every major claim links back to source input(s).
@@ -188,7 +189,7 @@ Acceptance criteria:
 
 Current status: Partially validated with a deterministic multi-input synthesis demo covered by `tests/test_prd_direction.py`.
 
-Next gap: Generalize the synthesis beyond the current five fixtures and validate quality under conflicting or noisier weekly inputs.
+Next gap: Generalize the synthesis beyond the current fixtures, add true aggregated shared-artifact updates beyond the weekly brief, and validate quality under conflicting or noisier weekly inputs.
 
 ## Validation commands
 

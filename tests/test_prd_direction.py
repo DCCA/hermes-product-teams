@@ -274,6 +274,13 @@ class PrdDirectionTests(unittest.TestCase):
             self.assertIn("001-customer-feedback-thread.md", brief)
             self.assertIn("005-product-brainstorm.md", brief)
 
+            self.assertTrue((workspace / "Discovery Notes" / "001-customer-feedback-thread.generated.md").exists())
+            self.assertTrue((workspace / "Discovery Notes" / "005-product-brainstorm.generated.md").exists())
+            self.assertFalse((workspace / "Customer Insights.md").exists())
+            self.assertFalse((workspace / "Decision Log.md").exists())
+            self.assertFalse((workspace / "Open Questions.md").exists())
+            self.assertFalse((workspace / "PRD Update Proposals.md").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

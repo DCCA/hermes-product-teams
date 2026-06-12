@@ -1233,73 +1233,195 @@ def run(input_path: Path, workspace: Path) -> list[Path]:
     return written
 
 
+def source_id(capture: CaptureInput) -> str:
+    return capture.slug.split("-", 1)[0]
+
+
+def format_source_ids(captures: list[CaptureInput]) -> str:
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for capture in captures:
+        item = source_id(capture)
+        if item not in seen:
+            seen.add(item)
+            ordered.append(item)
+    return ", ".join(ordered)
+
+
+def write_discovery_note(capture: CaptureInput, workspace: Path) -> Path:
+    discovery_path = workspace / "Discovery Notes" / f"{capture.slug}.generated.md"
+    discovery_path.parent.mkdir(parents=True, exist_ok=True)
+    discovery_path.write_text(render_discovery_note(capture), encoding="utf-8")
+    return discovery_path
+
+
 def render_multi_input_weekly_brief(captures: list[CaptureInput]) -> str:
-    customer_feedback = next((capture for capture in captures if capture.kind == "customer_feedback"), None)
-    interview = next((capture for capture in captures if capture.kind == "user_interview"), None)
-    support = next((capture for capture in captures if capture.kind == "support_ticket_cluster"), None)
-    decision = next((capture for capture in captures if capture.kind == "internal_decision_discussion"), None)
-    brainstorm = next((capture for capture in captures if capture.kind == "product_brainstorm"), None)
     source_lines = "\n".join(f"- `examples/inputs/{capture.slug}.md`" for capture in captures)
+
+    discovery_captures: list[CaptureInput] = []
+    discovery_bullets: list[str] = []
+    decision_captures: list[CaptureInput] = []
+    decision_bullets: list[str] = []
+    pending_captures: list[CaptureInput] = []
+    pending_bullets: list[str] = []
+    proposal_captures: list[CaptureInput] = []
+    proposal_bullets: list[str] = []
+    risk_captures: list[CaptureInput] = []
+    risk_bullets: list[str] = []
+    next_action_captures: list[CaptureInput] = []
+    next_action_bullets: list[str] = []
+
+    for capture in captures:
+        if capture.kind == "customer_feedback":
+            discovery_captures.append(capture)
+            discovery_bullets.append(
+                "Customers still want a weekly AI summary, but only if it stays grounded in source-linked evidence and next actions."
+            )
+            pending_captures.append(capture)
+            pending_bullets.append(
+                "Whether activation/status clarity should be prioritized for the next product change."
+            )
+            proposal_captures.append(capture)
+            proposal_bullets.append(
+                "Add clearer workflow support for recurring weekly summaries and pending proposal review."
+            )
+            next_action_captures.append(capture)
+            next_action_bullets.append(
+                "Validate which input source delivers the most reusable product signal each week."
+            )
+        elif capture.kind == "user_interview":
+            discovery_captures.append(capture)
+            discovery_bullets.append(
+                "Interview feedback says trust increases when source links are visible and PRD implications remain proposals."
+            )
+            pending_captures.append(capture)
+            pending_bullets.append(
+                "Which source should be validated first as the highest-value product-memory input path."
+            )
+            proposal_captures.append(capture)
+            proposal_bullets.append(
+                "Preserve source-linked evidence and direct quotes across discovery outputs."
+            )
+            risk_captures.append(capture)
+            risk_bullets.append(
+                "Can the system keep source-linked evidence concise enough for weekly review without becoming noisy?"
+            )
+        elif capture.kind == "support_ticket_cluster":
+            discovery_captures.append(capture)
+            discovery_bullets.append(
+                "Support signals show export reliability is a concrete trust issue for recurring weekly workflows."
+            )
+            pending_captures.append(capture)
+            pending_bullets.append(
+                "Whether export reliability should be prioritized before broader workflow automation."
+            )
+            proposal_captures.append(capture)
+            proposal_bullets.append(
+                "Investigate export reliability before expanding into broader workflow automation."
+            )
+            risk_captures.append(capture)
+            risk_bullets.append(
+                "Support severity is still based on a limited cluster and needs broader confirmation."
+            )
+            next_action_captures.append(capture)
+            next_action_bullets.append(
+                "Measure whether export reliability is causing more immediate weekly pain."
+            )
+        elif capture.kind == "internal_decision_discussion":
+            discovery_captures.append(capture)
+            discovery_bullets.append(
+                "Internal decision discussion reinforces the need for proposal review before implementation starts."
+            )
+            decision_captures.append(capture)
+            decision_bullets.append(
+                "One important team-level conclusion did emerge: discovery-driven requirement changes should flow through proposal review before implementation whenever evidence is still evolving."
+            )
+            pending_captures.append(capture)
+            pending_bullets.append(
+                "Who should approve proposed PRD/spec edits before source-of-truth docs change."
+            )
+            proposal_captures.append(capture)
+            proposal_bullets.append(
+                "Keep PRD/spec changes proposal-first with human approval."
+            )
+            next_action_captures.append(capture)
+            next_action_bullets.append(
+                "Define the approval path and evidence threshold for PRD/spec proposals."
+            )
+        elif capture.kind == "product_brainstorm":
+            discovery_captures.append(capture)
+            discovery_bullets.append(
+                "The brainstorm suggests a structured customer recap could be a promising wedge, but the idea is still below the evidence threshold."
+            )
+            pending_captures.append(capture)
+            pending_bullets.append(
+                "Whether a structured customer recap should be the first brainstorm theme to prototype."
+            )
+            proposal_captures.append(capture)
+            proposal_bullets.append(
+                "Treat recap-style outputs as possible product implications, not validated requirements, until stronger evidence exists."
+            )
+            risk_captures.append(capture)
+            risk_bullets.append(
+                "Brainstorm ideas remain hypotheses and should not be treated as committed product direction."
+            )
+            next_action_captures.append(capture)
+            next_action_bullets.append(
+                "Test whether a structured customer recap actually saves founder/PM review time."
+            )
+
+    decision_summary = ["No final product decisions were made this week.", *decision_bullets]
+    numbered_next_actions = "\n".join(
+        f"{index}. {item}" for index, item in enumerate(next_action_bullets, start=1)
+    )
+    executive_summary = (
+        f"This synthesis combines {len(captures)} product input"
+        f"{'s' if len(captures) != 1 else ''} into one weekly view. "
+        "The strongest cross-cutting signal is that product teams want source-linked evidence, "
+        "clearer trust boundaries for requirement changes, and tighter weekly communication before more automation is added."
+    )
 
     return f"""# Weekly Product Brief — Multi-input Demo
 
 ## Executive summary
 
-This synthesis combines five product inputs into one weekly view. The strongest cross-cutting signal is that product teams want source-linked evidence, clearer trust boundaries for requirement changes, and tighter weekly communication before more automation is added.
+{executive_summary}
 
 ## Discovery signals
 
-Sources: 001, 002, 003, 004, 005
+Sources: {format_source_ids(discovery_captures)}
 
-- Customers still want a weekly AI summary, but only if it stays grounded in source-linked evidence and next actions.
-- Interview feedback says trust increases when source links are visible and PRD implications remain proposals.
-- Support signals show export reliability is a concrete trust issue for recurring weekly workflows.
-- Internal decision discussion reinforces the need for proposal review before implementation starts.
-- The brainstorm suggests a structured customer recap could be a promising wedge, but the idea is still below the evidence threshold.
+{bullets(discovery_bullets)}
 
 ## Decisions made
 
-Sources: 004
+Sources: {format_source_ids(decision_captures) if decision_captures else format_source_ids(captures)}
 
-- No final product decisions were made this week.
-- One important team-level conclusion did emerge: discovery-driven requirement changes should flow through proposal review before implementation whenever evidence is still evolving.
+{bullets(decision_summary)}
 
 ## Decisions pending
 
-Sources: 001, 002, 003, 004, 005
+Sources: {format_source_ids(pending_captures)}
 
-- Whether activation/status clarity or export reliability should be prioritized first for the next product change.
-- Which source should be validated first as the highest-value product-memory input path.
-- Whether a structured customer recap should be the first brainstorm theme to prototype.
-- Who should approve proposed PRD/spec edits before source-of-truth docs change.
+{bullets(pending_bullets)}
 
 ## PRD/spec update proposals
 
-Sources: 001, 002, 003, 004
+Sources: {format_source_ids(proposal_captures)}
 
-- Preserve source-linked evidence and direct quotes across discovery outputs.
-- Keep PRD/spec changes proposal-first with human approval.
-- Add clearer workflow support for recurring weekly summaries and pending proposal review.
-- Investigate export reliability and activation clarity before expanding into broader workflow automation.
-- Treat recap-style outputs as possible product implications, not validated requirements, until stronger evidence exists.
+{bullets(proposal_bullets)}
 
 ## Open questions and risks
 
-Sources: 002, 003, 005
+Sources: {format_source_ids(risk_captures)}
 
-- Can the system keep source-linked evidence concise enough for weekly review without becoming noisy?
-- Are the current support and interview samples representative enough to justify requirement-level changes?
-- How should conflicting weekly inputs be resolved when customer demand and internal sequencing disagree?
-- Brainstorm ideas remain hypotheses, and support severity is still based on a limited cluster.
+{bullets(risk_bullets)}
 
 ## Recommended next actions
 
-Sources: 001, 002, 003, 004, 005
+Sources: {format_source_ids(next_action_captures)}
 
-1. Validate which input source delivers the most reusable product signal each week.
-2. Define the approval path and evidence threshold for PRD/spec proposals.
-3. Measure whether activation clarity or export reliability is causing more immediate weekly pain.
-4. Test whether a structured customer recap actually saves founder/PM review time.
+{numbered_next_actions}
 
 ## Sources reviewed
 
@@ -1311,10 +1433,10 @@ def run_many(input_paths: list[Path], workspace: Path) -> list[Path]:
     written: list[Path] = []
     captures: list[CaptureInput] = []
     for input_path in input_paths:
-        captures.append(read_capture(input_path))
-        for path in run(input_path, workspace):
-            if path not in written:
-                written.append(path)
+        capture = read_capture(input_path)
+        captures.append(capture)
+        discovery_path = write_discovery_note(capture, workspace)
+        written.append(discovery_path)
 
     weekly_demo_path = workspace / "Weekly Briefs" / "weekly-brief-demo.generated.md"
     weekly_demo_path.parent.mkdir(parents=True, exist_ok=True)

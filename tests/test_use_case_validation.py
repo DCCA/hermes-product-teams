@@ -203,7 +203,7 @@ class UseCaseValidationTests(unittest.TestCase):
             content,
         )
         self.assertIn(
-            "Next gap: Generalize the synthesis beyond the current five fixtures and validate quality under conflicting or noisier weekly inputs.",
+            "Next gap: Generalize the synthesis beyond the current fixtures, add true aggregated shared-artifact updates beyond the weekly brief, and validate quality under conflicting or noisier weekly inputs.",
             content,
         )
 
