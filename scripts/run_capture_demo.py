@@ -52,8 +52,9 @@ class CaptureInput:
     brainstorm_next_actions: list[str] | None = None
 
 
-DEFAULT_INPUT = Path("examples/inputs/001-customer-feedback-thread.md")
-DEFAULT_WORKSPACE = Path("examples/workspace")
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_INPUT = ROOT / "examples" / "inputs" / "001-customer-feedback-thread.md"
+DEFAULT_WORKSPACE = ROOT / "examples" / "workspace"
 
 
 def read_capture(path: Path) -> CaptureInput:

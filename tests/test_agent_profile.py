@@ -36,8 +36,8 @@ class AgentProfileTests(unittest.TestCase):
             "facts from assumptions",
             "PRD update proposals",
             "human approval",
-            "never silently edit source-of-truth docs",
-            "do not create tickets, send stakeholder messages, or change external systems",
+            "Never silently edit source-of-truth docs",
+            "Do not create tickets, send stakeholder messages, or change external systems",
         ]
         for phrase in required_phrases:
             self.assertIn(phrase, soul)
