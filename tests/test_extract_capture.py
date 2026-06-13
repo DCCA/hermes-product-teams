@@ -413,6 +413,44 @@ class LiveEngineTests(unittest.TestCase):
             )
             self.assertEqual(linter.returncode, 0, linter.stdout + linter.stderr)
 
+    def test_live_wave1_fixtures_capture_and_verify(self) -> None:
+        # UC-201 (sales/CS call) and UC-202 (churn/exit feedback): each realistic
+        # messy fixture must capture through the real engine with verbatim-verified
+        # evidence and pass the trust linter.
+        for fixture in ("201-sales-call-feedback", "202-churn-exit-feedback"):
+            with self.subTest(fixture=fixture):
+                with tempfile.TemporaryDirectory() as tmp:
+                    workspace = Path(tmp) / "workspace"
+                    (workspace / "Weekly Briefs").mkdir(parents=True)
+                    result = subprocess.run(
+                        [
+                            sys.executable,
+                            str(SCRIPTS / "extract_capture.py"),
+                            "--input",
+                            f"examples/inputs/{fixture}.md",
+                            "--workspace",
+                            str(workspace),
+                        ],
+                        cwd=ROOT,
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertIn("Verified", result.stdout)
+                    linter = subprocess.run(
+                        [
+                            sys.executable,
+                            str(SCRIPTS / "check_workspace.py"),
+                            "--workspace",
+                            str(workspace),
+                            "--inputs",
+                            str(ROOT / "examples" / "inputs"),
+                        ],
+                        capture_output=True,
+                        text=True,
+                    )
+                    self.assertEqual(linter.returncode, 0, linter.stdout + linter.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

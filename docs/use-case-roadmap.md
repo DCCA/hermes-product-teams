@@ -50,10 +50,12 @@ Same capture → artifact pattern as today's six, applied to new source shapes. 
 - Fixture to author: `examples/inputs/201-sales-call-feedback.md` (a messy sales/CS call note: prospect objections, feature asks tied to deals, mixed buying-signal and product-signal).
 - Acceptance criteria: feature asks are captured as customer signals with the source; deal context is preserved as evidence **without** being turned into revenue-weighted priority; PRD implications remain proposals; the note distinguishes "prospect wants X" (assumption about need) from "prospect said X" (fact/quote).
 - Guardrail check: passes all five; constrained on revenue weighting.
+- Status: **fixture authored + engine-validated** — `examples/inputs/201-sales-call-feedback.md`. Live capture verified 7 verbatim quotes, trust linter passes; output keeps feature asks as source-linked signals, separates the AE's read (assumptions) from prospect quotes, and prioritizes on deadline/blockers rather than deal value. Remaining to fully close: human-confirmed signal-recall sign-off.
 
 **UC-202 — Churn / exit-survey feedback**
 - Fixture: `examples/inputs/202-churn-exit-feedback.md` (cancellation reasons, exit-survey verbatims, a CSM's interpretation mixed in).
 - Acceptance criteria: stated churn reasons captured verbatim as evidence; PM interpretation separated from customer statements; a durable "why customers leave" insight theme accumulates across captures (leverages the per-capture accumulation already shipped); does not exaggerate from small N.
+- Status: **fixture authored + engine-validated** — `examples/inputs/202-churn-exit-feedback.md`. Live capture verified 8 verbatim quotes, trust linter passes; customer verbatims land as evidence, the CSM's interpretation is quarantined as assumptions, and the output flags the small sample (n=6, really 4 activated) rather than over-reading it. Remaining to fully close: human-confirmed signal-recall sign-off.
 
 **UC-206 — Noisy multi-topic thread splitting**
 - Fixture: existing `examples/inputs/adversarial/101-noisy-slack-thread.md` (export reliability + format + SSO + pricing comms in one thread).
