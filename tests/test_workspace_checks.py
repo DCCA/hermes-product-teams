@@ -24,22 +24,33 @@ def run_demo(input_path: Path, workspace: Path) -> subprocess.CompletedProcess[s
     )
 
 
-def run_linter(workspace: Path) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        [sys.executable, str(CHECK_SCRIPT), "--workspace", str(workspace)],
-        capture_output=True,
-        text=True,
-        cwd=ROOT,
-    )
+def run_linter(workspace: Path, inputs: Path | None = None) -> subprocess.CompletedProcess[str]:
+    command = [sys.executable, str(CHECK_SCRIPT), "--workspace", str(workspace)]
+    if inputs is not None:
+        command += ["--inputs", str(inputs)]
+    return subprocess.run(command, capture_output=True, text=True, cwd=ROOT)
 
 
 class WorkspaceChecksTests(unittest.TestCase):
     def test_generated_workspace_passes_trust_checks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
+            rendered = 0
             for input_path in INPUTS:
-                run_demo(input_path, workspace)
+                proc = subprocess.run(
+                    [sys.executable, str(DEMO_SCRIPT), "--input", str(input_path), "--workspace", str(workspace)],
+                    capture_output=True,
+                    text=True,
+                    cwd=ROOT,
+                )
+                # Real-engine-only fixtures (e.g. the UC-201/UC-202 expansion inputs)
+                # are correctly refused by the deterministic demo; skip those here.
+                if proc.returncode != 0 and "cannot faithfully render" in proc.stderr:
+                    continue
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                rendered += 1
 
+            self.assertGreater(rendered, 0, "no bundled demo fixtures rendered")
             result = run_linter(workspace)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("OK:", result.stdout)
@@ -62,6 +73,53 @@ class WorkspaceChecksTests(unittest.TestCase):
         result = run_linter(ROOT / "examples" / "workspace")
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("OK:", result.stdout)
+        self.assertIn("Evidence quotes verified", result.stdout)
+
+    def test_fabricated_evidence_quote_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            run_demo(INPUTS[0], workspace)
+
+            note = workspace / "Discovery Notes" / f"{INPUTS[0].stem}.generated.md"
+            fabricated = note.read_text(encoding="utf-8").replace(
+                "## Evidence\n",
+                '## Evidence\n\n- “Customers demanded a blockchain integration immediately.”\n',
+                1,
+            )
+            note.write_text(fabricated, encoding="utf-8")
+
+            result = run_linter(workspace)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn(note.name, result.stdout)
+            self.assertIn("Evidence quote not found", result.stdout)
+
+    def test_empty_evidence_section_fails(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            run_demo(INPUTS[0], workspace)
+
+            note = workspace / "Discovery Notes" / f"{INPUTS[0].stem}.generated.md"
+            emptied = re.sub(
+                r"(## Evidence\n).*?(\n## )",
+                r"\1\2",
+                note.read_text(encoding="utf-8"),
+                count=1,
+                flags=re.DOTALL,
+            )
+            note.write_text(emptied, encoding="utf-8")
+
+            result = run_linter(workspace)
+            self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
+            self.assertIn("empty `## Evidence`", result.stdout)
+
+    def test_missing_inputs_dir_skips_quote_verification(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            run_demo(INPUTS[0], workspace)
+
+            result = run_linter(workspace, inputs=Path(tmp) / "no-such-inputs")
+            self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+            self.assertIn("quote verification skipped", result.stdout)
 
 
 if __name__ == "__main__":

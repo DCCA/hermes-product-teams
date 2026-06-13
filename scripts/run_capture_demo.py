@@ -140,16 +140,27 @@ def read_capture(path: Path) -> CaptureInput:
             brainstorm_next_actions=extract_bullet_section(text, "Next actions"),
         )
 
-    return CaptureInput(
-        slug=slug,
-        kind="customer_feedback",
-        title=title_match.group(1).strip() if title_match else slug,
-        source=source_match.group(1).strip() if source_match else str(path),
-        date=date_match.group(1).strip() if date_match else "Unknown date",
-        quotes=extract_quotes(text),
-        raw_text=text,
-        pm_note=section_after_heading(text, "PM note"),
-        potential_decision=section_after_heading(text, "Potential decision needed"),
+    if is_customer_feedback_capture(path, text):
+        return CaptureInput(
+            slug=slug,
+            kind="customer_feedback",
+            title=title_match.group(1).strip() if title_match else slug,
+            source=source_match.group(1).strip() if source_match else str(path),
+            date=date_match.group(1).strip() if date_match else "Unknown date",
+            quotes=extract_quotes(text),
+            raw_text=text,
+            pm_note=section_after_heading(text, "PM note"),
+            potential_decision=section_after_heading(text, "Potential decision needed"),
+        )
+
+    raise SystemExit(
+        f"run_capture_demo.py: cannot faithfully render {path.name!r}.\n"
+        "This is a DETERMINISTIC DEMO whose output is hand-written per bundled "
+        "sample fixture; it does not extract from arbitrary inputs and must not "
+        "fabricate evidence for ones it does not recognize (see docs/roadmap.md "
+        "item #1).\n"
+        "For real, messy, or adversarial inputs use the LLM engine:\n"
+        "    python3 scripts/extract_capture.py --input <file> --workspace <dir>"
     )
 
 
@@ -203,6 +214,17 @@ def is_product_brainstorm_capture(path: Path, text: str) -> bool:
         "participants:",
     ]
     return "product-brainstorm" in lowered_name or sum(marker in lowered for marker in markers) >= 4
+
+
+def is_customer_feedback_capture(path: Path, text: str) -> bool:
+    lowered_name = path.name.lower()
+    lowered = text.lower()
+    markers = [
+        "pm note:",
+        "potential decision needed:",
+        "customer feedback",
+    ]
+    return "customer-feedback" in lowered_name or sum(marker in lowered for marker in markers) >= 2
 
 
 def extract_metadata_value(text: str, field: str) -> str:
