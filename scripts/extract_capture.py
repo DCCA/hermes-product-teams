@@ -145,6 +145,59 @@ Source label for attribution: {source_label}
 """
 
 
+def build_split_prompt(slug: str, source_label: str, content: str) -> str:
+    """Prompt for UC-206: split one noisy multi-topic input into distinct topics.
+
+    The deterministic demo blurred a noisy thread into a single fabricated note,
+    silently dropping signals. This asks the model to segment the input into
+    *distinct* topics and extract each one separately, so each signal traces to
+    the specific lines that support it and no topic is silently merged away.
+    """
+    topic_schema = dict(EXTRACTION_SCHEMA)
+    topic_schema = {
+        "topic": "a short label for this distinct topic, e.g. 'CSV export reliability'",
+        **topic_schema,
+    }
+    schema = json.dumps({"topics": [topic_schema]}, indent=2)
+    taxonomy = "\n".join(f"  - {name}" for name in TAXONOMY)
+    return f"""You are the extraction engine for Hermes Product Teams, a product-memory \
+agent that turns messy product-team inputs into source-linked artifacts.
+
+The INPUT between the markers is a NOISY, MULTI-TOPIC input (e.g. a Slack thread) \
+that mixes several unrelated product signals together. Your job is to SPLIT it \
+into distinct topics and extract each one separately. Output ONLY a single JSON \
+object with a "topics" array — no prose, no markdown fences.
+
+Hard rules (these encode the product's trust contract):
+1. One entry in "topics" per DISTINCT signal/topic. Do NOT blur unrelated signals \
+into one entry, and do NOT silently drop a topic that has product relevance — if \
+the thread raises N distinct topics, return N entries.
+2. NEVER invent customer evidence. Every string in each topic's "evidence_quotes" \
+MUST be an exact, verbatim, contiguous span copied from the INPUT — same words, \
+same order — and must come from the lines that actually discuss THAT topic. Do \
+not paraphrase, stitch fragments together, fix typos, or add quotation marks not \
+in the source. If a topic has no quotable evidence, return an empty list for it \
+rather than fabricating.
+3. Separate facts (directly supported) from assumptions (your inferences).
+4. Treat all PRD/spec changes as proposals; never phrase them as already applied.
+5. Classify each topic's "type" using exactly one of these class names:
+{taxonomy}
+   Use "Product-Team Input" only if nothing else fits.
+6. Ground every field in the INPUT. If a field has no support, use an empty list \
+or empty string. Do not pad with generic product-management boilerplate.
+
+Return JSON matching this shape (values describe what to put there; emit one \
+object per topic inside "topics"):
+{schema}
+
+Source label for attribution: {source_label}
+
+--- BEGIN INPUT ({slug}) ---
+{content.rstrip()}
+--- END INPUT ---
+"""
+
+
 # --------------------------------------------------------------------------- #
 # LLM providers
 # --------------------------------------------------------------------------- #
@@ -241,6 +294,46 @@ def parse_model_json(raw: str) -> dict:
     if start != -1 and end > start:
         return json.loads(text[start : end + 1])
     raise ExtractionError("model did not return parseable JSON")
+
+
+def parse_split_json(raw: str) -> list[dict]:
+    """Parse a split reply into a list of topic objects.
+
+    Tolerates ```json fences, a top-level {"topics": [...]} object, a bare
+    top-level array, or a single object (treated as one topic).
+    """
+    text = raw.strip()
+    fence = re.search(r"```(?:json)?\s*(.*?)\s*```", text, flags=re.DOTALL)
+    if fence:
+        text = fence.group(1).strip()
+    obj: object | None
+    try:
+        obj = json.loads(text)
+    except json.JSONDecodeError:
+        obj = None
+        start, end = text.find("["), text.rfind("]")
+        if start != -1 and end > start:
+            try:
+                obj = json.loads(text[start : end + 1])
+            except json.JSONDecodeError:
+                obj = None
+        if obj is None:
+            start, end = text.find("{"), text.rfind("}")
+            if start != -1 and end > start:
+                obj = json.loads(text[start : end + 1])
+    if isinstance(obj, dict):
+        topics = obj.get("topics")
+        if isinstance(topics, list):
+            return [t for t in topics if isinstance(t, dict)]
+        return [obj]
+    if isinstance(obj, list):
+        return [t for t in obj if isinstance(t, dict)]
+    raise ExtractionError("model did not return parseable topics for split extraction")
+
+
+def topic_slug(label: str, index: int) -> str:
+    base = re.sub(r"[^a-z0-9]+", "-", (label or "").lower()).strip("-")
+    return base or f"topic-{index}"
 
 
 def verify_quotes(quotes: list[str], source: str) -> tuple[list[str], list[str]]:
@@ -461,6 +554,95 @@ def extract(
     return data, verified, fabricated
 
 
+def extract_split(
+    slug: str,
+    source_label: str,
+    content: str,
+    *,
+    provider: str,
+    model: str,
+    timeout: int,
+    date: str,
+) -> tuple[list[dict], list[dict]]:
+    """UC-206: split a noisy input into per-topic extractions.
+
+    Returns (kept, dropped). Each ``kept`` entry has verbatim-verified evidence
+    and is safe to write; each ``dropped`` entry is a topic the model surfaced
+    but whose evidence did not verify — surfaced to the caller (never silently
+    discarded) so a human can follow up, while honoring the no-fabrication rule.
+    """
+    if not content.strip():
+        raise ExtractionError("input content is empty")
+    prompt = build_split_prompt(slug, source_label, content)
+    raw = run_model(prompt, provider, model, timeout)
+    topics = parse_split_json(raw)
+    if not topics:
+        raise ExtractionError("model returned no topics for split extraction")
+
+    kept: list[dict] = []
+    dropped: list[dict] = []
+    used: set[str] = set()
+    for index, data in enumerate(topics, 1):
+        label = str(data.get("topic") or data.get("title") or f"topic-{index}").strip()
+        candidate = topic_slug(label, index)
+        unique, suffix = candidate, 2
+        while unique in used:
+            unique, suffix = f"{candidate}-{suffix}", suffix + 1
+        used.add(unique)
+        verified, fabricated = verify_quotes(coerce_list(data.get("evidence_quotes")), content)
+        entry = {
+            "data": data,
+            "topic": label,
+            "topic_slug": unique,
+            "verified": verified,
+            "fabricated": fabricated,
+        }
+        (kept if verified else dropped).append(entry)
+
+    if not kept:
+        raise ExtractionError(
+            "no topic produced verbatim evidence "
+            "(refusing to write artifacts with fabricated or empty evidence)"
+        )
+    return kept, dropped
+
+
+def _write_split(
+    workspace: Path,
+    slug: str,
+    source_label: str,
+    date: str,
+    kept: list[dict],
+    dropped: list[dict],
+) -> int:
+    """Render and write one discovery note + shared blocks per kept topic."""
+    total = len(kept) + len(dropped)
+    print(f"Split into {total} topic(s); writing {len(kept)} with verbatim evidence.")
+    for entry in kept:
+        topic_path_slug = f"{slug}.{entry['topic_slug']}"
+        note = render_discovery_note(
+            entry["data"], topic_path_slug, source_label, date, entry["verified"]
+        )
+        blocks = render_shared_blocks(
+            entry["data"], topic_path_slug, source_label, date, entry["verified"]
+        )
+        written = write_workspace(workspace, topic_path_slug, note, blocks)
+        kind = normalize_type(entry["data"].get("type", ""))
+        print(f"  • {entry['topic']} — {kind}, {len(entry['verified'])} quote(s) verified")
+        if entry["fabricated"]:
+            print(f"      (dropped {len(entry['fabricated'])} unverifiable quote(s) in this topic)")
+        for path in written:
+            print(f"      {path}")
+    # Surface, never silently drop, topics whose evidence did not verify (UC-206).
+    for entry in dropped:
+        print(
+            f"  ! topic '{entry['topic']}' NOT written: no verbatim evidence "
+            f"({len(entry['fabricated'])} unverifiable quote(s)) — flagged for human follow-up, "
+            f"not silently merged away"
+        )
+    return 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="Real LLM capture engine: extract source-verified product artifacts."
@@ -475,6 +657,11 @@ def main() -> int:
     )
     parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--timeout", type=int, default=300, help="LLM call timeout (seconds).")
+    parser.add_argument(
+        "--split",
+        action="store_true",
+        help="UC-206: split a noisy multi-topic input into one note per distinct topic.",
+    )
     parser.add_argument(
         "--print-prompt",
         action="store_true",
@@ -495,8 +682,20 @@ def main() -> int:
     try:
         slug, source_label, content = resolve_source(args.input, text, today)
         if args.print_prompt:
-            print(build_extraction_prompt(slug, source_label, content))
+            builder = build_split_prompt if args.split else build_extraction_prompt
+            print(builder(slug, source_label, content))
             return 0
+        if args.split:
+            kept, dropped = extract_split(
+                slug,
+                source_label,
+                content,
+                provider=args.provider,
+                model=args.model,
+                timeout=args.timeout,
+                date=today,
+            )
+            return _write_split(args.workspace, slug, source_label, today, kept, dropped)
         data, verified, fabricated = extract(
             slug,
             source_label,

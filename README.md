@@ -175,6 +175,22 @@ pbpaste | python3 scripts/extract_capture.py --workspace /tmp/live-workspace
 python3 scripts/extract_capture.py --input <file> --print-prompt
 ```
 
+### Splitting noisy multi-topic inputs (UC-206)
+
+A single messy thread often mixes several unrelated signals. With `--split` the
+engine segments the input into **distinct topics** and writes one source-traced
+discovery note per topic, instead of blurring them into a single note (the exact
+failure the deterministic demo showed). Each topic's evidence is verified verbatim
+independently; a topic whose evidence can't be verified is **reported, not silently
+dropped**, so no signal disappears unnoticed.
+
+```bash
+python3 scripts/extract_capture.py \
+  --input examples/inputs/adversarial/101-noisy-slack-thread.md \
+  --workspace /tmp/live-workspace --split
+# → e.g. four notes: CSV export reliability, xlsx format, SSO-before-renewal, pricing-comms confusion
+```
+
 Then verify the generated artifacts:
 
 ```bash

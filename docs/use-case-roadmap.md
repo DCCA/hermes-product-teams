@@ -58,6 +58,7 @@ Same capture → artifact pattern as today's six, applied to new source shapes. 
 **UC-206 — Noisy multi-topic thread splitting**
 - Fixture: existing `examples/inputs/adversarial/101-noisy-slack-thread.md` (export reliability + format + SSO + pricing comms in one thread).
 - Acceptance criteria: the engine produces **distinct** discovery notes/signals per topic rather than one blurred note; each signal traces to the specific lines that support it; no topic silently dropped (this is the exact failure the deterministic engine showed). This use case is the clearest demonstration of the engine upgrade and should be a flagship acceptance test.
+- Status: **engine support shipped** — `scripts/extract_capture.py --split` segments a noisy input into one verbatim-verified note per topic, reporting (never silently dropping) topics whose evidence can't be verified; the trust linter is split-aware. Verified live on `adversarial/101` (four distinct topics recovered). Remaining to fully close: human-confirmed signal-recall sign-off on a realistic messy fixture.
 
 ## Tier B — Longitudinal / cross-artifact workflows (depth, the moat)
 
