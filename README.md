@@ -62,10 +62,11 @@ The demo workspace uses Markdown files:
 
 ## Current status
 
-Hermes Product Teams now includes both:
+Hermes Product Teams now includes:
 
-1. an installable Hermes profile package under `hermes/profile/`; and
-2. a deterministic demo harness under `scripts/run_capture_demo.py`.
+1. an installable Hermes profile package under `hermes/profile/`;
+2. a **real, non-deterministic LLM capture engine** under `scripts/extract_capture.py` that extracts from arbitrary messy input and machine-verifies every quote against the source; and
+3. a deterministic demo harness under `scripts/run_capture_demo.py` that renders the bundled sample fixtures (and honestly refuses inputs it cannot faithfully render).
 
 ## Install the actual Hermes profile
 
@@ -149,6 +150,40 @@ python3 scripts/run_weekly_brief.py \
   --workspace examples/workspace
 ```
 
+## Real LLM capture engine
+
+`scripts/extract_capture.py` is the real engine (roadmap item #1). Unlike the
+deterministic demo, it reads any messy input, asks a real model to extract
+structure, and **verifies every Evidence quote verbatim against the source before
+writing anything** — so its output passes the trust linter by construction, and it
+refuses to write artifacts when no quote can be verified (no empty or fabricated
+evidence).
+
+```bash
+# Provider auto-detects: Anthropic Messages API via ANTHROPIC_API_KEY, else the `claude` CLI.
+python3 scripts/extract_capture.py \
+  --input examples/inputs/adversarial/101-noisy-slack-thread.md \
+  --workspace /tmp/live-workspace
+
+# Pasted text or stdin work too:
+python3 scripts/extract_capture.py --text "Slack thread: exports keep timing out" --workspace /tmp/live-workspace
+pbpaste | python3 scripts/extract_capture.py --workspace /tmp/live-workspace
+
+# Inspect the exact prompt without calling the model:
+python3 scripts/extract_capture.py --input <file> --print-prompt
+```
+
+Then verify the generated artifacts:
+
+```bash
+python3 scripts/check_workspace.py --workspace /tmp/live-workspace --inputs examples/inputs
+```
+
+Because the engine output is non-deterministic, it is **not** committed to
+`examples/workspace/` (which stays the stable deterministic demo). Unit tests cover
+prompt building, response parsing, quote verification, and rendering offline; an
+end-to-end test against a live provider runs only when `EXTRACT_CAPTURE_LIVE=1`.
+
 ## Deterministic demo and validation
 
 Run:
@@ -159,7 +194,9 @@ python3 scripts/check_scaffold.py
 python3 -m unittest discover -v
 ```
 
-The deterministic demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
+The deterministic demo renders the bundled sample fixtures only; it refuses inputs
+it does not recognize (pointing you at the real engine above) rather than
+fabricating a narrative. It transforms `examples/inputs/001-customer-feedback-thread.md` into:
 
 - a generated discovery note;
 - customer insight updates;
