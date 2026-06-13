@@ -13,6 +13,7 @@ REQUIRED_FILES = [
     "docs/use-case-validation.md",
     "docs/user-test-guide.md",
     "docs/roadmap.md",
+    "docs/use-case-roadmap.md",
     "hermes/skills/product-team-memory/SKILL.md",
     "hermes/prompts/capture.md",
     "hermes/prompts/weekly-brief.md",
