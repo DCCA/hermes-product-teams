@@ -37,7 +37,7 @@ Honest state: right architecture and trust rules; no working extraction engine f
 ### Weeks 1–2 — Stop the fabrication, make trust checkable
 
 1. **Make the LLM path (`run_agent_capture.py`) the real engine; make the demo honest.** The deterministic script must refuse or clearly label non-fixture inputs as static demo output. Validate the agent path against the adversarial fixtures.
-2. **Quote verification in `check_workspace.py`.** Every Evidence line in a generated artifact must appear (verbatim or fuzzy-matched) in its source input; empty Evidence sections fail. Converts the top adoption barrier into the differentiator: *every quote machine-verified*.
+2. **Quote verification in `check_workspace.py`.** ✅ Landed. Every quoted Evidence bullet must appear verbatim (after quote/whitespace/case normalization) in its source input; empty Evidence sections fail. Matching is verbatim, not fuzzy — a fuzzy match would accept "Frankenstein quotes" stitched from real fragments, the exact failure this guards against. Confirmed to flag the deterministic engine's fabrication on all four adversarial fixtures. Converts the top adoption barrier into the differentiator: *every quote machine-verified*.
 3. **Adversarial fixture suite committed** (`examples/inputs/adversarial/`) as the standing quality bar. These are deliberately NOT wired into the deterministic demo; they exist to evaluate the agent path and future extraction work.
 
 ### Weeks 3–4 — The two white-space features
