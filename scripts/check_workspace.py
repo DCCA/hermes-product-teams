@@ -85,7 +85,16 @@ def slug_from_note(note: Path) -> str:
 
 def find_source_input(slug: str, inputs_dir: Path) -> Path | None:
     matches = sorted(inputs_dir.rglob(f"{slug}.md"))
-    return matches[0] if matches else None
+    if matches:
+        return matches[0]
+    # Split notes (UC-206) use "<input-stem>.<topic-slug>" so several topics from
+    # one noisy input get distinct files; they verify against the same source.
+    if "." in slug:
+        base = slug.split(".", 1)[0]
+        base_matches = sorted(inputs_dir.rglob(f"{base}.md"))
+        if base_matches:
+            return base_matches[0]
+    return None
 
 
 def check_evidence_traceability(workspace: Path, inputs_dir: Path) -> tuple[list[str], int, bool]:

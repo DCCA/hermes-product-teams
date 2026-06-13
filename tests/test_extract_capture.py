@@ -54,6 +54,50 @@ FAKE_MODEL_REPLY = json.dumps(
 )
 
 
+# A plausible split reply for fixture 101: four distinct topics. One keeps a real
+# quote but also proposes a fabricated one (must be dropped within the topic); one
+# topic has only a fabricated quote (whole topic must be reported as dropped, not
+# silently merged away).
+FAKE_SPLIT_REPLY = json.dumps(
+    {
+        "topics": [
+            {
+                "topic": "CSV export reliability",
+                "type": "Support Ticket Cluster",
+                "title": "Acme CSV export complaint",
+                "evidence_quotes": [
+                    "acme corp complain about the csv thing again",
+                    "ticket from them this morning",
+                ],
+                "customer_insight": "Acme keeps hitting a recurring CSV export problem.",
+                "implication": "Export reliability is a renewal risk for Acme.",
+            },
+            {
+                "topic": "SSO before renewal",
+                "type": "Customer Feedback / Roadmap Signal",
+                "title": "Acme wants SSO before renewing",
+                "evidence_quotes": [
+                    "they want SSO before renewal",
+                    "renewal will absolutely not happen without it",  # fabricated
+                ],
+            },
+            {
+                "topic": "Pricing comms confusion",
+                "type": "Customer Feedback / Roadmap Signal",
+                "title": "Starter-tier analytics confusion",
+                "evidence_quotes": ["thought analytics was included in starter"],
+            },
+            {
+                "topic": "Imaginary mobile request",
+                "type": "Customer Feedback / Roadmap Signal",
+                "title": "Mobile app ask",
+                "evidence_quotes": ["customer asked for a native mobile app"],  # fabricated
+            },
+        ]
+    }
+)
+
+
 class PromptTests(unittest.TestCase):
     def test_prompt_embeds_input_and_verbatim_contract(self) -> None:
         prompt = extract_capture.build_extraction_prompt("101", "Slack #cust-feedback", SOURCE_101)
@@ -183,6 +227,98 @@ class EngineGuaranteeTests(unittest.TestCase):
         self.assertIn("Evidence quotes verified against source inputs", result.stdout)
 
 
+class SplitTests(unittest.TestCase):
+    """UC-206: split a noisy multi-topic input into distinct, source-traced notes."""
+
+    def test_split_prompt_asks_for_topics_and_verbatim_contract(self) -> None:
+        prompt = extract_capture.build_split_prompt("101", "Slack #cust-feedback", SOURCE_101)
+        self.assertIn('"topics"', prompt)
+        self.assertIn("MULTI-TOPIC", prompt)
+        self.assertIn("do NOT silently drop", prompt)
+        self.assertIn("verbatim", prompt)
+        self.assertIn("acme corp complain about the csv thing", prompt)  # input embedded
+
+    def test_parse_split_handles_object_list_and_fence(self) -> None:
+        self.assertEqual(
+            extract_capture.parse_split_json('{"topics": [{"topic": "a"}, {"topic": "b"}]}'),
+            [{"topic": "a"}, {"topic": "b"}],
+        )
+        self.assertEqual(
+            extract_capture.parse_split_json('[{"topic": "a"}]'), [{"topic": "a"}]
+        )
+        fenced = "ok:\n```json\n{\"topics\": [{\"topic\": \"a\"}]}\n```\n"
+        self.assertEqual(extract_capture.parse_split_json(fenced), [{"topic": "a"}])
+        # A single object (model ignored the array) is tolerated as one topic.
+        self.assertEqual(extract_capture.parse_split_json('{"topic": "solo"}'), [{"topic": "solo"}])
+
+    def test_topic_slug_kebabs_and_falls_back(self) -> None:
+        self.assertEqual(extract_capture.topic_slug("CSV export reliability!", 1), "csv-export-reliability")
+        self.assertEqual(extract_capture.topic_slug("", 3), "topic-3")
+
+    def test_extract_split_keeps_evidenced_topics_and_reports_dropped(self) -> None:
+        with mock.patch("extract_capture.run_model", return_value=FAKE_SPLIT_REPLY):
+            kept, dropped = extract_capture.extract_split(
+                "101-noisy-slack-thread",
+                "examples/inputs/adversarial/101-noisy-slack-thread.md",
+                SOURCE_101,
+                provider="auto",
+                model="x",
+                timeout=1,
+                date="2026-06-13",
+            )
+        kept_topics = [e["topic"] for e in kept]
+        self.assertEqual(len(kept), 3)
+        self.assertIn("CSV export reliability", kept_topics)
+        self.assertIn("SSO before renewal", kept_topics)
+        self.assertIn("Pricing comms confusion", kept_topics)
+        # Distinct slugs per topic so notes/blocks don't collide.
+        self.assertEqual(len({e["topic_slug"] for e in kept}), 3)
+        # The fabricated quote inside the kept SSO topic was dropped, real one kept.
+        sso = next(e for e in kept if e["topic"] == "SSO before renewal")
+        self.assertEqual(sso["verified"], ["they want SSO before renewal"])
+        self.assertEqual(len(sso["fabricated"]), 1)
+        # The all-fabricated topic is surfaced as dropped, not silently merged away.
+        self.assertEqual([e["topic"] for e in dropped], ["Imaginary mobile request"])
+
+    def test_extract_split_refuses_when_no_topic_verifies(self) -> None:
+        reply = json.dumps({"topics": [{"topic": "x", "evidence_quotes": ["never said this"]}]})
+        with mock.patch("extract_capture.run_model", return_value=reply):
+            with self.assertRaises(extract_capture.ExtractionError):
+                extract_capture.extract_split(
+                    "101", "src", SOURCE_101,
+                    provider="auto", model="x", timeout=1, date="2026-06-13",
+                )
+
+    def test_split_workspace_passes_trust_linter(self) -> None:
+        with mock.patch("extract_capture.run_model", return_value=FAKE_SPLIT_REPLY):
+            kept, dropped = extract_capture.extract_split(
+                "101-noisy-slack-thread",
+                "examples/inputs/adversarial/101-noisy-slack-thread.md",
+                SOURCE_101,
+                provider="auto", model="x", timeout=1, date="2026-06-13",
+            )
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            (workspace / "Weekly Briefs").mkdir(parents=True)
+            rc = extract_capture._write_split(
+                workspace, "101-noisy-slack-thread",
+                "examples/inputs/adversarial/101-noisy-slack-thread.md",
+                "2026-06-13", kept, dropped,
+            )
+            self.assertEqual(rc, 0)
+            notes = list((workspace / "Discovery Notes").glob("*.generated.md"))
+            self.assertEqual(len(notes), 3)  # one note per kept topic
+            result = subprocess.run(
+                [
+                    sys.executable, str(SCRIPTS / "check_workspace.py"),
+                    "--workspace", str(workspace),
+                    "--inputs", str(ROOT / "examples" / "inputs"),
+                ],
+                capture_output=True, text=True,
+            )
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+
 class DemoHonestyTests(unittest.TestCase):
     def test_deterministic_demo_refuses_adversarial_input(self) -> None:
         result = subprocess.run(
@@ -227,6 +363,42 @@ class LiveEngineTests(unittest.TestCase):
             )
             self.assertEqual(result.returncode, 0, result.stderr)
             self.assertIn("Verified", result.stdout)
+            linter = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "check_workspace.py"),
+                    "--workspace",
+                    str(workspace),
+                    "--inputs",
+                    str(ROOT / "examples" / "inputs"),
+                ],
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(linter.returncode, 0, linter.stdout + linter.stderr)
+
+    def test_live_split_produces_multiple_verified_notes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            workspace = Path(tmp) / "workspace"
+            (workspace / "Weekly Briefs").mkdir(parents=True)
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(SCRIPTS / "extract_capture.py"),
+                    "--input",
+                    "examples/inputs/adversarial/101-noisy-slack-thread.md",
+                    "--workspace",
+                    str(workspace),
+                    "--split",
+                ],
+                cwd=ROOT,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            notes = list((workspace / "Discovery Notes").glob("*.generated.md"))
+            # The whole point of UC-206: the noisy thread splits into >1 topic.
+            self.assertGreater(len(notes), 1, result.stdout)
             linter = subprocess.run(
                 [
                     sys.executable,
