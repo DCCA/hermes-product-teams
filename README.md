@@ -234,3 +234,24 @@ python3 scripts/report_prd_touchpoints.py
 The report lists, per discovery note, the PRD sections sharing salient terms (with the shared terms shown so a PM can judge relevance), prints `No PRD touchpoint found` for uncovered notes, and ends with a coverage summary. Use `--min-overlap` to tune sensitivity and `--output <path>` to also write the report to a file.
 
 For manual validation, use `docs/user-test-guide.md` to run a 5–10 minute user test of the customer feedback demo before expanding to additional use cases.
+
+## Eval harness
+
+`scripts/run_eval_harness.py` installs the Hermes profile into a temporary runtime, clones a clean copy of the example product workspace, runs capture against the eval cases in `examples/evals/cases.json`, generates a weekly brief, and then runs the workspace trust checker. This is the closest repo-native check that the package is still runnable as a Hermes Product Teams agent rather than only a set of docs.
+
+Run a cheap smoke case:
+
+```bash
+python3 scripts/run_eval_harness.py \
+  --cases examples/evals/smoke-case.json \
+  --output reports/smoke-eval-report.md
+```
+
+Run the broader eval set:
+
+```bash
+python3 scripts/run_eval_harness.py \
+  --output reports/latest-eval-report.md
+```
+
+For experiments, pass `--prompt-suffix` to append a temporary instruction to every capture and brief prompt without editing the packaged workflow files. When a case fails, the Markdown report includes the command stdout/stderr tail so install/config/profile errors are visible in the saved report.

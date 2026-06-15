@@ -1,0 +1,38 @@
+[
+  {
+    "id": "customer-feedback",
+    "input": "examples/inputs/001-customer-feedback-thread.md",
+    "expected_type": "Customer Feedback / Roadmap Signal",
+    "required_note_strings": []
+  },
+  {
+    "id": "user-interview",
+    "input": "examples/inputs/002-user-interview-notes.md",
+    "expected_type": "User Interview",
+    "required_note_strings": [
+      "Interviewee role:",
+      "Segment:",
+      "Goals:",
+      "Assumptions to validate:",
+      "Follow-up questions:"
+    ]
+  },
+  {
+    "id": "support-ticket-cluster",
+    "input": "examples/inputs/003-support-ticket-cluster.md",
+    "expected_type": "Support Ticket Cluster",
+    "required_note_strings": []
+  },
+  {
+    "id": "internal-decision-discussion",
+    "input": "examples/inputs/004-internal-decision-discussion.md",
+    "expected_type": "Internal Product Decision Discussion",
+    "required_note_strings": []
+  },
+  {
+    "id": "product-brainstorm",
+    "input": "examples/inputs/005-product-brainstorm.md",
+    "expected_type": "Product Brainstorm",
+    "required_note_strings": []
+  }
+]
