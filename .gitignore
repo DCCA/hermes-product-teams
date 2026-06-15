@@ -10,3 +10,7 @@ __pycache__/
 .env
 
 # Generated demo output is intentionally committed for the MVP demo.
+
+# Generated eval reports are local run artifacts.
+reports/*.md
+!reports/.gitkeep
