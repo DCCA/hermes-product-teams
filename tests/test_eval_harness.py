@@ -58,6 +58,24 @@ class EvalHarnessTests(unittest.TestCase):
             EVAL.note_has_expected_structure(note, "User Interview"),
         )
 
+    def test_eval_defaults_to_temp_hermes_home(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir_path = Path(tmpdir)
+            self.assertEqual(tmpdir_path / "hermes-home", EVAL.resolve_hermes_home(tmpdir_path, use_live_home=False))
+
+    def test_eval_requires_explicit_live_hermes_home(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            home = EVAL.resolve_hermes_home(Path(tmpdir), use_live_home=True)
+            self.assertEqual(Path.home() / ".hermes", home)
+
+    def test_install_eval_profile_rejects_unsafe_profile_name(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmpdir_path = Path(tmpdir)
+            workspace = tmpdir_path / "workspace"
+            EVAL.clone_workspace_template(workspace)
+            with self.assertRaises(Exception):
+                EVAL.install_eval_profile(tmpdir_path / "hermes-home", workspace, "../bad-profile")
+
     def test_markdown_report_includes_failure_output_for_failed_cases(self) -> None:
         failed_case = EVAL.CaseResult(
             case_id="failed-capture",

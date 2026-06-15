@@ -314,7 +314,12 @@ def run_workspace_check(workspace: Path) -> subprocess.CompletedProcess[str]:
 
 
 def install_eval_profile(hermes_home: Path, workspace: Path, profile_name: str) -> Path:
-    return install_profile.install_profile(hermes_home, workspace, profile_name)
+    safe_name = install_profile.safe_profile_name(profile_name)
+    return install_profile.install_profile(hermes_home, workspace, safe_name)
+
+
+def resolve_hermes_home(tmpdir: Path, use_live_home: bool = False) -> Path:
+    return (Path.home() / ".hermes") if use_live_home else (tmpdir / "hermes-home")
 
 
 def format_markdown_report(result: HarnessResult) -> str:
@@ -392,7 +397,7 @@ def format_markdown_report(result: HarnessResult) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description="Run a simple Hermes Product Teams AI eval harness.")
     parser.add_argument("--cases", type=Path, default=CASES_PATH, help="Path to eval case JSON.")
-    parser.add_argument("--profile-name", default="product-teams-eval", help="Temporary Hermes profile name.")
+    parser.add_argument("--profile-name", type=install_profile.safe_profile_name, default="product-teams-eval", help="Temporary Hermes profile name.")
     parser.add_argument("--model", help="Optional Hermes model override.")
     parser.add_argument("--provider", help="Optional Hermes provider override.")
     parser.add_argument(
@@ -407,12 +412,12 @@ def main() -> int:
     parser.add_argument(
         "--keep-temp",
         action="store_true",
-        help="Keep the temporary Hermes home and workspace instead of deleting them.",
+        help="Keep the temporary Hermes home and workspace instead of deleting them. May retain copied local Hermes config/auth files.",
     )
     parser.add_argument(
-        "--isolated-hermes-home",
+        "--live-hermes-home",
         action="store_true",
-        help="Use a temporary Hermes home copied from ~/.hermes instead of the live Hermes home.",
+        help="Install the temporary eval profile into the live ~/.hermes directory instead of an isolated temporary Hermes home.",
     )
     args = parser.parse_args()
 
@@ -421,11 +426,11 @@ def main() -> int:
     tmpdir_obj = tempfile.TemporaryDirectory(prefix="hpt-eval-")
     tmpdir = Path(tmpdir_obj.name)
     workspace = tmpdir / "workspace"
-    hermes_home = (tmpdir / "hermes-home") if args.isolated_hermes_home else (Path.home() / ".hermes")
+    hermes_home = resolve_hermes_home(tmpdir, use_live_home=args.live_hermes_home)
 
     try:
         clone_workspace_template(workspace)
-        if args.isolated_hermes_home:
+        if not args.live_hermes_home:
             seed_runtime_config(hermes_home)
         install_eval_profile(hermes_home, workspace, args.profile_name)
         default_model, default_provider = resolve_model_provider_from_home(hermes_home)
