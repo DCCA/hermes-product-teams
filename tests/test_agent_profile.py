@@ -177,6 +177,65 @@ class AgentProfileTests(unittest.TestCase):
             self.assertNotIn("--profile product-teams", capture_result.stdout)
             self.assertIn("--profile acme-product-memory", weekly_result.stdout)
 
+    def test_install_can_initialize_a_new_workspace_without_overwriting_existing_artifacts(self) -> None:
+        script = ROOT / "scripts" / "install_profile.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            hermes_home = Path(tmpdir) / "hermes-home"
+            workspace = Path(tmpdir) / "new-product-workspace"
+            workspace.mkdir()
+            existing_prd = workspace / "PRD.md"
+            existing_prd.write_text("# Existing PRD\n\nKeep this content.\n", encoding="utf-8")
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--hermes-home",
+                    str(hermes_home),
+                    "--workspace",
+                    str(workspace),
+                    "--init-workspace",
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            self.assertIn("Initialized workspace scaffold", result.stdout)
+            self.assertTrue((workspace / "Discovery Notes").is_dir())
+            self.assertTrue((workspace / "Weekly Briefs").is_dir())
+            for artifact in [
+                "Product Brief.md",
+                "Customer Insights.md",
+                "Decision Log.md",
+                "Open Questions.md",
+                "PRD Update Proposals.md",
+            ]:
+                self.assertTrue((workspace / artifact).exists(), artifact)
+            self.assertEqual(
+                "# Existing PRD\n\nKeep this content.\n",
+                existing_prd.read_text(encoding="utf-8"),
+            )
+            self.assertIn("Status: Proposed, not applied to `PRD.md`", (workspace / "PRD Update Proposals.md").read_text(encoding="utf-8"))
+
+            second_result = subprocess.run(
+                [
+                    sys.executable,
+                    str(script),
+                    "--hermes-home",
+                    str(hermes_home),
+                    "--workspace",
+                    str(workspace),
+                    "--init-workspace",
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+            self.assertIn("no workspace files changed", second_result.stdout)
+
     def test_install_rejects_profile_names_that_are_not_safe_slugs(self) -> None:
         script = ROOT / "scripts" / "install_profile.py"
         unsafe_names = ["../escape-profile", "bad/name", 'bad"name', "", "-starts-with-dash"]

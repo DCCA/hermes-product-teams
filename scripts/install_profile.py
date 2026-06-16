@@ -16,6 +16,15 @@ SCRIPT_SOURCES = [
 ]
 DEFAULT_PROFILE_NAME = "product-teams"
 PROFILE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+WORKSPACE_DIRECTORIES = ["Discovery Notes", "Weekly Briefs"]
+WORKSPACE_FILES = {
+    "Product Brief.md": "# Product Brief\n\nCapture the product context, audience, and durable problem framing here.\n",
+    "Customer Insights.md": "# Customer Insights\n\nAppend source-linked customer and user insight themes here.\n",
+    "Decision Log.md": "# Decision Log\n\nRecord decisions, options considered, rationale, risks, and reversibility here.\n",
+    "Open Questions.md": "# Open Questions\n\nTrack unresolved discovery and product questions here.\n",
+    "PRD Update Proposals.md": "# PRD Update Proposals\n\nStatus: Proposed, not applied to `PRD.md`.\n\nAdd source-linked PRD/spec change proposals here for human review.\n",
+    "PRD.md": "# PRD\n\nSource-of-truth requirements snapshot. Hermes Product Teams should propose changes before this file is edited.\n",
+}
 
 
 def safe_profile_name(value: str) -> str:
@@ -46,6 +55,27 @@ def copy_runtime_script(script_path: Path, scripts_root: Path, profile_name: str
     )
     destination = scripts_root / script_path.name
     destination.write_text(content, encoding="utf-8")
+
+
+def initialize_workspace(workspace: Path) -> list[Path]:
+    created: list[Path] = []
+    workspace.mkdir(parents=True, exist_ok=True)
+
+    for directory in WORKSPACE_DIRECTORIES:
+        path = workspace / directory
+        if not path.exists():
+            path.mkdir(parents=True)
+            created.append(path)
+        else:
+            path.mkdir(parents=True, exist_ok=True)
+
+    for relative_path, content in WORKSPACE_FILES.items():
+        path = workspace / relative_path
+        if not path.exists():
+            path.write_text(content, encoding="utf-8")
+            created.append(path)
+
+    return created
 
 
 def install_profile(hermes_home: Path, workspace: Path, profile_name: str) -> Path:
@@ -87,11 +117,26 @@ def main() -> int:
         default=DEFAULT_PROFILE_NAME,
         help="Hermes profile name to create. Defaults to product-teams.",
     )
+    parser.add_argument(
+        "--init-workspace",
+        action="store_true",
+        help="Create the standard Product Teams workspace folders and starter artifact files if missing.",
+    )
     args = parser.parse_args()
 
     profile_root = install_profile(args.hermes_home, args.workspace, args.profile_name)
+    created_workspace_paths: list[Path] = []
+    if args.init_workspace:
+        created_workspace_paths = initialize_workspace(args.workspace)
     print(f"Installed Hermes Product Teams profile: {profile_root}")
     print(f"Workspace: {args.workspace.resolve()}")
+    if args.init_workspace:
+        print(f"Initialized workspace scaffold: {args.workspace.resolve()}")
+        if created_workspace_paths:
+            for path in created_workspace_paths:
+                print(f"  created: {path.resolve()}")
+        else:
+            print("  no workspace files changed; scaffold already existed")
     print(f"Run capture: python3 {profile_root / 'scripts' / 'run_agent_capture.py'} --input /path/to/input.md")
     print(f"Run weekly brief: python3 {profile_root / 'scripts' / 'run_weekly_brief.py'}")
     print(f"Or run: hermes chat --profile {args.profile_name} --skills product-team-memory")
