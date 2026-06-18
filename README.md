@@ -85,7 +85,7 @@ python3 scripts/install_profile.py \
   --init-workspace
 ```
 
-To install under a team-specific profile name, pass `--profile-name <name>` using a safe slug such as `acme-product-memory`. The generated `config.yaml` and packaged runners will use that same profile name by default.
+To install under a team-specific profile name, pass `--profile-name <name>` using a Hermes-compatible lowercase slug such as `acme-product-memory`. The generated `config.yaml` and packaged runners will use that same profile name by default.
 
 This creates a runnable Hermes profile at:
 

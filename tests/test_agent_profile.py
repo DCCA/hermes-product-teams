@@ -238,7 +238,16 @@ class AgentProfileTests(unittest.TestCase):
 
     def test_install_rejects_profile_names_that_are_not_safe_slugs(self) -> None:
         script = ROOT / "scripts" / "install_profile.py"
-        unsafe_names = ["../escape-profile", "bad/name", 'bad"name', "", "-starts-with-dash"]
+        unsafe_names = [
+            "../escape-profile",
+            "bad/name",
+            'bad"name',
+            "",
+            "-starts-with-dash",
+            "UppercaseName",
+            "has.dot",
+            "x" * 65,
+        ]
         for unsafe_name in unsafe_names:
             with self.subTest(profile_name=unsafe_name):
                 with tempfile.TemporaryDirectory() as tmpdir:
@@ -259,7 +268,7 @@ class AgentProfileTests(unittest.TestCase):
                     )
 
                     self.assertNotEqual(0, result.returncode)
-                    self.assertIn("safe Hermes profile slug", result.stderr)
+                    self.assertIn("Hermes-compatible profile slug", result.stderr)
                     self.assertFalse((hermes_home / "escape-profile").exists())
                     self.assertFalse((Path(tmpdir) / "escape-profile").exists())
 

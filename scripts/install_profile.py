@@ -15,7 +15,9 @@ SCRIPT_SOURCES = [
     ROOT / "scripts" / "run_weekly_brief.py",
 ]
 DEFAULT_PROFILE_NAME = "product-teams"
-PROFILE_NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+# Match Hermes' profile selector (`hermes --profile/-p`): lowercase alphanumeric
+# profile IDs, with optional underscores/hyphens, up to 64 characters.
+PROFILE_NAME_PATTERN = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
 WORKSPACE_DIRECTORIES = ["Discovery Notes", "Weekly Briefs"]
 WORKSPACE_FILES = {
     "Product Brief.md": "# Product Brief\n\nCapture the product context, audience, and durable problem framing here.\n",
@@ -30,8 +32,9 @@ WORKSPACE_FILES = {
 def safe_profile_name(value: str) -> str:
     if not PROFILE_NAME_PATTERN.fullmatch(value):
         raise argparse.ArgumentTypeError(
-            "profile name must be a safe Hermes profile slug: start with a letter or "
-            "number and use only letters, numbers, dots, underscores, or hyphens"
+            "profile name must be a Hermes-compatible profile slug: start with a "
+            "lowercase letter or number and use 1-64 lowercase letters, numbers, "
+            "underscores, or hyphens"
         )
     return value
 

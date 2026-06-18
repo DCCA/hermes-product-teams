@@ -31,7 +31,7 @@ python3 scripts/install_profile.py \
   --init-workspace
 ```
 
-To install under a different Hermes profile name, pass `--profile-name <name>` using a safe slug such as `acme-product-memory`; the installer renders that name into both `config.yaml` and the packaged runtime scripts so dry-runs and real captures invoke the matching profile.
+To install under a different Hermes profile name, pass `--profile-name <name>` using a Hermes-compatible lowercase slug such as `acme-product-memory`; the installer renders that name into both `config.yaml` and the packaged runtime scripts so dry-runs and real captures invoke the matching profile.
 
 This creates:
 
