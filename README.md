@@ -56,6 +56,7 @@ The demo workspace uses Markdown files:
 - `Customer Insights.md`
 - `Decision Log.md`
 - `Open Questions.md`
+- `PRD Update Proposals.md`
 - `PRD.md`
 - `Weekly Briefs/`
 - `Discovery Notes/`
@@ -76,7 +77,15 @@ From the repository root:
 python3 scripts/install_profile.py --workspace examples/workspace
 ```
 
-To install under a team-specific profile name, pass `--profile-name <name>` using a safe slug such as `acme-product-memory`. The generated `config.yaml` and packaged runners will use that same profile name by default.
+For a fresh product workspace, add `--init-workspace` to create the standard artifact folders and starter Markdown files without overwriting any existing artifacts:
+
+```bash
+python3 scripts/install_profile.py \
+  --workspace /absolute/path/to/product-workspace \
+  --init-workspace
+```
+
+To install under a team-specific profile name, pass `--profile-name <name>` using a Hermes-compatible lowercase slug such as `acme-product-memory`. The generated `config.yaml` and packaged runners will use that same profile name by default.
 
 This creates a runnable Hermes profile at:
 

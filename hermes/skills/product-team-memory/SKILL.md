@@ -64,11 +64,13 @@ Source:
 
 Maintain these workspace artifacts:
 
+- `Product Brief.md` — durable product context, audience, and problem framing.
 - `Discovery Notes/` — one note per meaningful input or session.
 - `Customer Insights.md` — durable themes, quotes, segments, evidence.
 - `Decision Log.md` — decisions, rationale, alternatives, reversibility.
 - `Open Questions.md` — unresolved discovery/product questions.
-- `PRD.md` — current product requirements snapshot.
+- `PRD Update Proposals.md` — proposed PRD/spec edits requiring human approval.
+- `PRD.md` — current product requirements snapshot; do not silently edit without approval.
 - `Weekly Briefs/` — synthesized product-team updates.
 
 ## Safety and Permission Rules

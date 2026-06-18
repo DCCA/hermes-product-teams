@@ -23,7 +23,15 @@ From the repository root:
 python3 scripts/install_profile.py --workspace examples/workspace
 ```
 
-To install under a different Hermes profile name, pass `--profile-name <name>` using a safe slug such as `acme-product-memory`; the installer renders that name into both `config.yaml` and the packaged runtime scripts so dry-runs and real captures invoke the matching profile.
+For a new real workspace, add `--init-workspace` to create the standard artifact folders and starter Markdown files without overwriting existing artifacts:
+
+```bash
+python3 scripts/install_profile.py \
+  --workspace /absolute/path/to/product-workspace \
+  --init-workspace
+```
+
+To install under a different Hermes profile name, pass `--profile-name <name>` using a Hermes-compatible lowercase slug such as `acme-product-memory`; the installer renders that name into both `config.yaml` and the packaged runtime scripts so dry-runs and real captures invoke the matching profile.
 
 This creates:
 
