@@ -26,6 +26,27 @@ class AgentProfileTests(unittest.TestCase):
         for relative_path in required_files:
             self.assertTrue((PROFILE / relative_path).exists(), relative_path)
 
+    def test_profile_artifact_contract_matches_workspace_scaffold(self) -> None:
+        config = (PROFILE / "config.example.yaml").read_text(encoding="utf-8")
+        workspace_contract = (PROFILE / "workspace.example.yaml").read_text(encoding="utf-8")
+        skill = (ROOT / "hermes" / "skills" / "product-team-memory" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+
+        for artifact in [
+            "Product Brief.md",
+            "Discovery Notes",
+            "Customer Insights.md",
+            "Decision Log.md",
+            "Open Questions.md",
+            "PRD Update Proposals.md",
+            "PRD.md",
+            "Weekly Briefs",
+        ]:
+            self.assertIn(artifact, config)
+            self.assertIn(artifact, workspace_contract)
+            self.assertIn(artifact, skill)
+
     def test_profile_soul_defines_actual_agent_behavior(self) -> None:
         soul = (PROFILE / "SOUL.md").read_text(encoding="utf-8")
 
