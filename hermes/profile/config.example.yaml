@@ -1,13 +1,14 @@
 # Example Hermes profile config for Hermes Product Teams.
-# scripts/install_profile.py renders this to ~/.hermes/profiles/product-teams/config.yaml.
+# scripts/install_profile.py renders this to ~/.hermes/profiles/<profile-name>/config.yaml.
 
 profile:
-  name: product-teams
+  name: "{{PROFILE_NAME}}"
   description: Hermes Product Teams Discovery + Living Docs Agent
 
 workspace:
   path: "{{WORKSPACE_PATH}}"
   artifacts:
+    product_brief: "Product Brief.md"
     discovery_notes: "Discovery Notes"
     customer_insights: "Customer Insights.md"
     decision_log: "Decision Log.md"

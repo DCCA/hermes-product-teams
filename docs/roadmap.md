@@ -18,7 +18,7 @@ Four realistic messy inputs (noisy multi-topic Slack paste, contradictory interv
 - `check_workspace.py` **passed the fabricated workspace** — it validates structure (sections, `Source:` lines), not content.
 - Classification fell back to generic on 3 of 4 inputs.
 
-Honest state: right architecture and trust rules; no working extraction engine for real inputs; no content-level trust enforcement.
+Honest state (at time of stress-test): right architecture and trust rules; no working extraction engine for real inputs; no content-level trust enforcement. Both gaps are now closed — see Plan items #1 (real engine) and #2 (quote verification) below.
 
 ### From market/practice research (five-stream web research, 2026-06-12)
 
@@ -36,7 +36,7 @@ Honest state: right architecture and trust rules; no working extraction engine f
 
 ### Weeks 1–2 — Stop the fabrication, make trust checkable
 
-1. **Make the LLM path (`run_agent_capture.py`) the real engine; make the demo honest.** The deterministic script must refuse or clearly label non-fixture inputs as static demo output. Validate the agent path against the adversarial fixtures.
+1. **Make the LLM path the real engine; make the demo honest.** ✅ Landed. `scripts/extract_capture.py` is a real, non-deterministic LLM engine (provider `auto`: Anthropic Messages API via `ANTHROPIC_API_KEY`, else the `claude` CLI). It reads arbitrary messy input, asks the model for structured extraction, and **verifies every Evidence quote verbatim against the source before writing** — using the same normalization as `check_workspace.py`, so accepted quotes pass the linter by construction. It refuses to write artifacts when no quote verifies (no empty/fabricated Evidence). Validated against the adversarial fixtures: on `adversarial/101` it correctly classifies (Support Ticket Cluster, not the canned activation narrative) and recovers the real signals (CSV, SSO, xlsx, Starter-tier pricing, trial churn) the deterministic engine missed — 7 quotes verified. `scripts/run_capture_demo.py` is now honest: it **refuses inputs it does not recognize** rather than fabricating a narrative, and points users to the real engine. The LLM call is the only non-deterministic boundary; prompt building, parsing, verification, and rendering are unit-tested offline, with a `EXTRACT_CAPTURE_LIVE=1`-gated end-to-end test.
 2. **Quote verification in `check_workspace.py`.** ✅ Landed. Every quoted Evidence bullet must appear verbatim (after quote/whitespace/case normalization) in its source input; empty Evidence sections fail. Matching is verbatim, not fuzzy — a fuzzy match would accept "Frankenstein quotes" stitched from real fragments, the exact failure this guards against. Confirmed to flag the deterministic engine's fabrication on all four adversarial fixtures. Converts the top adoption barrier into the differentiator: *every quote machine-verified*.
 3. **Adversarial fixture suite committed** (`examples/inputs/adversarial/`) as the standing quality bar. These are deliberately NOT wired into the deterministic demo; they exist to evaluate the agent path and future extraction work.
 
@@ -58,7 +58,12 @@ Honest state: right architecture and trust rules; no working extraction engine f
 
 ## Adversarial fixtures
 
-| Fixture | Stresses | Known current failure |
+The "Known current failure" column records how the **deterministic demo** fails each
+fixture — the motivation for the real engine (item #1). The real engine
+(`scripts/extract_capture.py`) is evaluated against these same fixtures; the demo now
+refuses them outright instead of fabricating.
+
+| Fixture | Stresses | Known current failure (deterministic demo) |
 | --- | --- | --- |
 | `adversarial/101-noisy-slack-thread.md` | Multi-topic noise, no `>` quotes, buried signals (export reliability + format, SSO, pricing comms) | Fabricated activation narrative; empty Evidence |
 | `adversarial/102-contradictory-interview.md` | Internal contradictions, unstructured headings, unverified claims | Empty extraction sections; contradictions lost |

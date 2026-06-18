@@ -1,6 +1,9 @@
 workspace:
   path: examples/workspace
   artifact_contract:
+    product_brief:
+      path: Product Brief.md
+      purpose: Durable product context, audience, and problem framing for brief orientation.
     discovery_notes:
       path: Discovery Notes/
       purpose: One source-linked note per meaningful product input.

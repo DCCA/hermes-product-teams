@@ -35,9 +35,22 @@ class WorkspaceChecksTests(unittest.TestCase):
     def test_generated_workspace_passes_trust_checks(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             workspace = Path(tmp) / "workspace"
+            rendered = 0
             for input_path in INPUTS:
-                run_demo(input_path, workspace)
+                proc = subprocess.run(
+                    [sys.executable, str(DEMO_SCRIPT), "--input", str(input_path), "--workspace", str(workspace)],
+                    capture_output=True,
+                    text=True,
+                    cwd=ROOT,
+                )
+                # Real-engine-only fixtures (e.g. the UC-201/UC-202 expansion inputs)
+                # are correctly refused by the deterministic demo; skip those here.
+                if proc.returncode != 0 and "cannot faithfully render" in proc.stderr:
+                    continue
+                self.assertEqual(proc.returncode, 0, proc.stderr)
+                rendered += 1
 
+            self.assertGreater(rendered, 0, "no bundled demo fixtures rendered")
             result = run_linter(workspace)
             self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
             self.assertIn("OK:", result.stdout)

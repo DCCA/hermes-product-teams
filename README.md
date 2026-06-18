@@ -56,16 +56,18 @@ The demo workspace uses Markdown files:
 - `Customer Insights.md`
 - `Decision Log.md`
 - `Open Questions.md`
+- `PRD Update Proposals.md`
 - `PRD.md`
 - `Weekly Briefs/`
 - `Discovery Notes/`
 
 ## Current status
 
-Hermes Product Teams now includes both:
+Hermes Product Teams now includes:
 
-1. an installable Hermes profile package under `hermes/profile/`; and
-2. a deterministic demo harness under `scripts/run_capture_demo.py`.
+1. an installable Hermes profile package under `hermes/profile/`;
+2. a **real, non-deterministic LLM capture engine** under `scripts/extract_capture.py` that extracts from arbitrary messy input and machine-verifies every quote against the source; and
+3. a deterministic demo harness under `scripts/run_capture_demo.py` that renders the bundled sample fixtures (and honestly refuses inputs it cannot faithfully render).
 
 ## Install the actual Hermes profile
 
@@ -74,6 +76,16 @@ From the repository root:
 ```bash
 python3 scripts/install_profile.py --workspace examples/workspace
 ```
+
+For a fresh product workspace, add `--init-workspace` to create the standard artifact folders and starter Markdown files without overwriting any existing artifacts:
+
+```bash
+python3 scripts/install_profile.py \
+  --workspace /absolute/path/to/product-workspace \
+  --init-workspace
+```
+
+To install under a team-specific profile name, pass `--profile-name <name>` using a Hermes-compatible lowercase slug such as `acme-product-memory`. The generated `config.yaml` and packaged runners will use that same profile name by default.
 
 This creates a runnable Hermes profile at:
 
@@ -149,6 +161,56 @@ python3 scripts/run_weekly_brief.py \
   --workspace examples/workspace
 ```
 
+## Real LLM capture engine
+
+`scripts/extract_capture.py` is the real engine (roadmap item #1). Unlike the
+deterministic demo, it reads any messy input, asks a real model to extract
+structure, and **verifies every Evidence quote verbatim against the source before
+writing anything** — so its output passes the trust linter by construction, and it
+refuses to write artifacts when no quote can be verified (no empty or fabricated
+evidence).
+
+```bash
+# Provider auto-detects: Anthropic Messages API via ANTHROPIC_API_KEY, else the `claude` CLI.
+python3 scripts/extract_capture.py \
+  --input examples/inputs/adversarial/101-noisy-slack-thread.md \
+  --workspace /tmp/live-workspace
+
+# Pasted text or stdin work too:
+python3 scripts/extract_capture.py --text "Slack thread: exports keep timing out" --workspace /tmp/live-workspace
+pbpaste | python3 scripts/extract_capture.py --workspace /tmp/live-workspace
+
+# Inspect the exact prompt without calling the model:
+python3 scripts/extract_capture.py --input <file> --print-prompt
+```
+
+### Splitting noisy multi-topic inputs (UC-206)
+
+A single messy thread often mixes several unrelated signals. With `--split` the
+engine segments the input into **distinct topics** and writes one source-traced
+discovery note per topic, instead of blurring them into a single note (the exact
+failure the deterministic demo showed). Each topic's evidence is verified verbatim
+independently; a topic whose evidence can't be verified is **reported, not silently
+dropped**, so no signal disappears unnoticed.
+
+```bash
+python3 scripts/extract_capture.py \
+  --input examples/inputs/adversarial/101-noisy-slack-thread.md \
+  --workspace /tmp/live-workspace --split
+# → e.g. four notes: CSV export reliability, xlsx format, SSO-before-renewal, pricing-comms confusion
+```
+
+Then verify the generated artifacts:
+
+```bash
+python3 scripts/check_workspace.py --workspace /tmp/live-workspace --inputs examples/inputs
+```
+
+Because the engine output is non-deterministic, it is **not** committed to
+`examples/workspace/` (which stays the stable deterministic demo). Unit tests cover
+prompt building, response parsing, quote verification, and rendering offline; an
+end-to-end test against a live provider runs only when `EXTRACT_CAPTURE_LIVE=1`.
+
 ## Deterministic demo and validation
 
 Run:
@@ -159,7 +221,9 @@ python3 scripts/check_scaffold.py
 python3 -m unittest discover -v
 ```
 
-The deterministic demo transforms `examples/inputs/001-customer-feedback-thread.md` into:
+The deterministic demo renders the bundled sample fixtures only; it refuses inputs
+it does not recognize (pointing you at the real engine above) rather than
+fabricating a narrative. It transforms `examples/inputs/001-customer-feedback-thread.md` into:
 
 - a generated discovery note;
 - customer insight updates;
@@ -179,3 +243,24 @@ python3 scripts/report_prd_touchpoints.py
 The report lists, per discovery note, the PRD sections sharing salient terms (with the shared terms shown so a PM can judge relevance), prints `No PRD touchpoint found` for uncovered notes, and ends with a coverage summary. Use `--min-overlap` to tune sensitivity and `--output <path>` to also write the report to a file.
 
 For manual validation, use `docs/user-test-guide.md` to run a 5–10 minute user test of the customer feedback demo before expanding to additional use cases.
+
+## Eval harness
+
+`scripts/run_eval_harness.py` installs the Hermes profile into a temporary runtime, clones a clean copy of the example product workspace, runs capture against the eval cases in `examples/evals/cases.json`, generates a weekly brief, and then runs the workspace trust checker. This is the closest repo-native check that the package is still runnable as a Hermes Product Teams agent rather than only a set of docs.
+
+Run a cheap smoke case:
+
+```bash
+python3 scripts/run_eval_harness.py \
+  --cases examples/evals/smoke-case.json \
+  --output reports/smoke-eval-report.md
+```
+
+Run the broader eval set:
+
+```bash
+python3 scripts/run_eval_harness.py \
+  --output reports/latest-eval-report.md
+```
+
+For experiments, pass `--prompt-suffix` to append a temporary instruction to every capture and brief prompt without editing the packaged workflow files. When a case fails, the Markdown report includes the command stdout/stderr tail so install/config/profile errors are visible in the saved report.

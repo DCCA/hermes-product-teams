@@ -1,0 +1,8 @@
+[
+  {
+    "id": "customer-feedback",
+    "input": "examples/inputs/001-customer-feedback-thread.md",
+    "expected_type": "Customer Feedback / Roadmap Signal",
+    "required_note_strings": []
+  }
+]
