@@ -46,6 +46,7 @@ This creates:
 │   └── review-prd-proposals.md
 ├── skills/product-team-memory/SKILL.md
 └── scripts/
+    ├── check_profile_install.py
     ├── run_agent_capture.py
     └── run_weekly_brief.py
 ```
@@ -58,6 +59,14 @@ hermes --profile product-teams model
 ```
 
 ## Run the actual agent
+
+First verify the installed package and configured workspace without calling a model:
+
+```bash
+python3 ~/.hermes/profiles/product-teams/scripts/check_profile_install.py
+```
+
+The checker confirms required profile files, the workspace scaffold, and dry-run rendering for the capture and weekly-brief runners. If it reports missing workspace artifacts, rerun the installer with `--init-workspace` so starter files are created without overwriting existing docs.
 
 If you installed the profile into `~/.hermes/profiles/product-teams/`, dry-run the packaged capture command like this:
 
