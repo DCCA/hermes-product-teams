@@ -97,9 +97,18 @@ This creates a runnable Hermes profile at:
 ├── workflows/
 ├── skills/
 └── scripts/
+    ├── check_profile_install.py
     ├── run_agent_capture.py
     └── run_weekly_brief.py
 ```
+
+Verify the installed package and workspace scaffold without making a model call:
+
+```bash
+python3 ~/.hermes/profiles/product-teams/scripts/check_profile_install.py
+```
+
+The checker confirms the installed profile files exist, the configured workspace has the standard Product Teams artifacts, and the capture/weekly-brief runners render real `hermes chat --profile ... --skills product-team-memory` commands. If the workspace scaffold is missing, rerun the installer with `--init-workspace`.
 
 You can run the packaged scripts directly from the installed profile:
 

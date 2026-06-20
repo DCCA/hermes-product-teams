@@ -11,6 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PROFILE_SOURCE = ROOT / "hermes" / "profile"
 SKILL_SOURCE = ROOT / "hermes" / "skills" / "product-team-memory"
 SCRIPT_SOURCES = [
+    ROOT / "scripts" / "check_profile_install.py",
     ROOT / "scripts" / "run_agent_capture.py",
     ROOT / "scripts" / "run_weekly_brief.py",
 ]

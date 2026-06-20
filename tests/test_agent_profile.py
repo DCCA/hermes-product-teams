@@ -93,6 +93,7 @@ class AgentProfileTests(unittest.TestCase):
             )
             self.assertTrue((profile_root / "scripts" / "run_agent_capture.py").exists())
             self.assertTrue((profile_root / "scripts" / "run_weekly_brief.py").exists())
+            self.assertTrue((profile_root / "scripts" / "check_profile_install.py").exists())
 
             config = (profile_root / "config.yaml").read_text(encoding="utf-8")
             self.assertIn(str(ROOT / "examples" / "workspace"), config)
@@ -198,6 +199,15 @@ class AgentProfileTests(unittest.TestCase):
             self.assertNotIn("--profile product-teams", capture_result.stdout)
             self.assertIn("--profile acme-product-memory", weekly_result.stdout)
 
+            check_result = subprocess.run(
+                [sys.executable, str(profile_root / "scripts" / "check_profile_install.py")],
+                cwd=profile_root,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+            self.assertIn("installed profile is runnable", check_result.stdout)
+
     def test_install_can_initialize_a_new_workspace_without_overwriting_existing_artifacts(self) -> None:
         script = ROOT / "scripts" / "install_profile.py"
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -256,6 +266,81 @@ class AgentProfileTests(unittest.TestCase):
                 capture_output=True,
             )
             self.assertIn("no workspace files changed", second_result.stdout)
+
+    def test_check_profile_install_validates_installed_profile_and_workspace(self) -> None:
+        install_script = ROOT / "scripts" / "install_profile.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            hermes_home = Path(tmpdir) / "hermes-home"
+            workspace = Path(tmpdir) / "new-product-workspace"
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(install_script),
+                    "--hermes-home",
+                    str(hermes_home),
+                    "--workspace",
+                    str(workspace),
+                    "--init-workspace",
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            profile_root = hermes_home / "profiles" / "product-teams"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(profile_root / "scripts" / "check_profile_install.py"),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            self.assertIn("installed profile is runnable", result.stdout)
+            self.assertIn("workspace scaffold present", result.stdout)
+            self.assertIn("capture and weekly brief runners render Hermes commands", result.stdout)
+
+    def test_check_profile_install_reports_missing_workspace_artifacts(self) -> None:
+        install_script = ROOT / "scripts" / "install_profile.py"
+        check_script = ROOT / "scripts" / "check_profile_install.py"
+        with tempfile.TemporaryDirectory() as tmpdir:
+            hermes_home = Path(tmpdir) / "hermes-home"
+            workspace = Path(tmpdir) / "incomplete-workspace"
+            workspace.mkdir()
+            subprocess.run(
+                [
+                    sys.executable,
+                    str(install_script),
+                    "--hermes-home",
+                    str(hermes_home),
+                    "--workspace",
+                    str(workspace),
+                ],
+                cwd=ROOT,
+                check=True,
+                text=True,
+                capture_output=True,
+            )
+
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    str(check_script),
+                    "--profile-root",
+                    str(hermes_home / "profiles" / "product-teams"),
+                ],
+                cwd=ROOT,
+                text=True,
+                capture_output=True,
+            )
+
+            self.assertNotEqual(0, result.returncode)
+            self.assertIn("Workspace is missing required artifacts", result.stdout)
+            self.assertIn("--init-workspace", result.stdout)
 
     def test_install_rejects_profile_names_that_are_not_safe_slugs(self) -> None:
         script = ROOT / "scripts" / "install_profile.py"

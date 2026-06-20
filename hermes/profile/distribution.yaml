@@ -16,4 +16,9 @@ workflows:
   - workflows/weekly-brief.md
   - workflows/review-prd-proposals.md
 
+scripts:
+  - scripts/check_profile_install.py
+  - scripts/run_agent_capture.py
+  - scripts/run_weekly_brief.py
+
 workspace_example: workspace.example.yaml

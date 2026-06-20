@@ -39,6 +39,7 @@ REQUIRED_FILES = [
     "examples/inputs/adversarial/103-mixed-meeting-notes.md",
     "examples/inputs/adversarial/104-founder-voice-memo.md",
     "scripts/check_scaffold.py",
+    "scripts/check_profile_install.py",
     "scripts/check_workspace.py",
     "scripts/install_profile.py",
     "scripts/run_agent_capture.py",
