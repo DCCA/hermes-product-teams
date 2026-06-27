@@ -2,6 +2,17 @@
 
 A Hermes-based MVP for product teams: a permission-aware product memory agent that turns messy discovery inputs into maintained product artifacts — discovery notes, customer insights, decision logs, PRD update proposals, and weekly product briefs.
 
+## Review first
+
+If you are evaluating this repo as a product/AI systems case study, start with:
+
+1. **[MVP thesis](#mvp-thesis)** — why product teams need a memory layer rather than another chatbot.
+2. **[Default permission model](#default-permission-model)** — the trust boundary: read approved inputs, write in the workspace, propose important doc changes.
+3. **[Current status](#current-status)** — what is implemented now, including the installable Hermes profile and quote-verified capture engine.
+4. **[Eval harness](#eval-harness)** — the closest repo-native proof that the packaged workflow still runs end-to-end.
+
+**What this proves:** a practical pattern for AI-assisted product teams where messy customer/team inputs become traceable product memory, with source evidence and explicit human approval boundaries.
+
 ## MVP thesis
 
 Product teams do not need another generic AI PM chatbot. They need a trustworthy memory layer that keeps discovery, decisions, and docs current across messy team/customer inputs.
@@ -273,3 +284,12 @@ python3 scripts/run_eval_harness.py \
 ```
 
 For experiments, pass `--prompt-suffix` to append a temporary instruction to every capture and brief prompt without editing the packaged workflow files. When a case fails, the Markdown report includes the command stdout/stderr tail so install/config/profile errors are visible in the saved report.
+
+## Verification status
+
+Verified against the current working tree on 2026-06-27:
+
+- `python3 scripts/check_scaffold.py` passed (`53` required files present)
+- latest GitHub Actions `CI` run passed on `main`
+
+Use the eval harness above before presenting this as a live Hermes profile demo, because it validates the installed profile, workspace scaffold, capture flow, weekly brief flow, and trust checker together.
